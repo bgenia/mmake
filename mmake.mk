@@ -186,8 +186,8 @@ endef
 $.new_macro = $(strip $(call $.new_macro.implementation,$1,$2))
 
 
-# Options API
-# Options API is what the end user interacts with, it provides simple configuration primitives for the project.
+# Configuration API
+# Configuration API is what the end user interacts with, it provides simple configuration primitives for the project.
 # The main configuration objects are $.project and targets.
 # The $.project object represents project wide configuration. There can only be one such object, which is initialized automatically.
 # The target objects represent configurations of individual targets. There can be multiple such objects, which are initialized by the user.
