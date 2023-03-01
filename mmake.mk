@@ -124,6 +124,9 @@ $.object.get = $(foreach property,$($1),$(if $(filter $2,$(call $.property.get_k
 # (handle, key) -> value
 $.get = $(call $.object.get,$1,$2)
 
+# (handle, key) -> value
+$.this_get = $(call $.get,$($.this),$1)
+
 # (handle) -> text
 $.object.to_string = {$(foreach property,$($1),$(call $.property.to_string,$(property)))}
 
