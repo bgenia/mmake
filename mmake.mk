@@ -88,12 +88,12 @@ $.property.get_key = $($(call $.property.get_storage,$1).key)
 $.property.get_value = $($(call $.property.get_storage,$1).value)
 
 # (handle) -> text
-$.property.to_string = [$(strip $(call $.property.get_key,$1)=$(call $.property.get_value,$1))]
+$.property.to_string = [$(call $.property.get_key,$1)=$(call $.property.get_value,$1)]
 
 # *(key, value) -> ()
 define $.new_property.implementation.define_property =
-	$(call $.property.get_storage,$(words $($.property.index))).key = $1
-	$(call $.property.get_storage,$(words $($.property.index))).value = $2
+	$(call $.property.get_storage,$(words $($.property.index))).key = $$()$1$$()
+	$(call $.property.get_storage,$(words $($.property.index))).value = $$()$2$$()
 endef
 
 # (key, value) -> handle
@@ -118,14 +118,18 @@ $.object.encode = $.object/$1
 # (handle) -> index
 $.object.decode = $(patsubst $.object/%,%,$1)
 
+# TODO: Implement proper joining in $.get_raw so I can get rid of $.get
 # (handle, key) -> value
-$.object.get = $(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property))))
+$.object.get = $(strip $(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property)))))
+$.object.get_raw = $(call $.unspace,$(foreach property,$($1),$(call $.unspace.wrap,$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property))))))
 
 # (handle, key) -> value
 $.get = $(call $.object.get,$1,$2)
+$.get_raw = $(call $.object.get_raw,$1,$2)
 
 # (handle, key) -> value
 $.this_get = $(call $.get,$($.this),$1)
+$.this_get_raw = $(call $.get_raw,$($.this),$1)
 
 # (handle) -> text
 $.object.to_string = {$(foreach property,$($1),$(call $.property.to_string,$(property)))}
@@ -146,6 +150,19 @@ $.new_object = $(strip $(call $.new_object.implementation,$1))
 # (propertyOrObject) -> text
 $.to_string = $(if $(1:$.property/%=),$(if $(1:$.object/%=),$1,$(call $.object.to_string,$1)),$(call $.property.to_string,$1))
 
+# () -> handle
+# (key) -> value
+$.@ = $(if $1,$(call $.this_get,$1),$($.this))
+$.@r = $(if $1,$(call $.this_get_raw,$1),$($.this))
+
+$.unspace.right = $.unspace.right_separator__
+
+# (text) -> text
+$.unspace.wrap = $1$($.unspace.right)
+
+# (text) -> text
+$.unspace = $(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))
+
 
 # Macro API
 # Macros are used to store reusable make code. They can be accessed as plain text using $.macro.get or evaluated using $.macro.invoke.
@@ -163,16 +180,16 @@ endef
 $.macro.storage := $(call $.new_object)
 
 # (macro) -> ()
-$.macro.register = $(eval $($.macro.storage) += $(call $.set,$(call $.get,$1,key),$1))
+$.macro.register = $(eval $($.macro.storage) += $(call $.set,$(call $.get_raw,$1,key),$1))
 
 # (macro, context) -> ()
-$.macro.use_context = $(eval $.this = $(or $2,$(call $.get,$(macro),$.context)))
+$.macro.use_context = $(eval $.this = $(or $2,$(call $.get_raw,$(macro),$.context)))
 
 # (key, context) -> macro_text
-$.macro.get = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$(call $.get,$(macro),$.source)$($.macro.linebreak))
+$.macro.get = $(foreach macro,$(call $.get_raw,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(call $.get_raw,$(macro),$.source)$($.macro.linebreak))
 
 # (key, context) -> ()
-$.macro.invoke = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$(eval $(call $.get,$(macro),$.source)$($.macro.linebreak)))
+$.macro.invoke = $(foreach macro,$(call $.get_raw,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(eval $(call $.get_raw,$(macro),$.source)$($.macro.linebreak)))
 
 # (key, context) -> ()
 $.eval = $(call $.macro.invoke,$1,$2)
