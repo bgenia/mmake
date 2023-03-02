@@ -45,23 +45,19 @@ $(target2) += $(call $.set,sources,bar.c)
 
 # - Project `init` step generator
 define $(call $.new_generator,init)
-
 .RECIPEPREFIX := >
 
-$$(info building project $(call $.get,$($.this),name))
+$$(info building project $(call $.@,name))
 
-CC = $(call $.get,$($.this),CC)
-
+CC = $(call $.@,CC)
 endef
 
 # - Target `build` step generator
 define $(call $.new_generator,build,target)
+$$(info building target $(call $.@,name))
 
-$$(info building target $(call $.get,$($.this),name))
-
-$(call $.get,$($.this),name): $(call $.get,$($.this),sources)
+$(call $.@,name): $(call $.@,sources)
 >   $$(CC) $$^ -o $$@
-
 endef
 
 # MMake entrypoint
