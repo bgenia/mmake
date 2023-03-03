@@ -118,18 +118,14 @@ $.object.encode = $.object/$1
 # (handle) -> index
 $.object.decode = $(patsubst $.object/%,%,$1)
 
-# TODO: Implement proper joining in $.get_raw so I can get rid of $.get
 # (handle, key) -> value
-$.object.get = $(strip $(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property)))))
-$.object.get_raw = $(call $.unspace,$(foreach property,$($1),$(call $.unspace.wrap,$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property))))))
+$.object.get = $(call $.unspace,$(call $.unspace,$(foreach property,$($1),$(call $.unspace.rwrap,$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property)) ))))$($.unspace.left))
 
 # (handle, key) -> value
 $.get = $(call $.object.get,$1,$2)
-$.get_raw = $(call $.object.get_raw,$1,$2)
 
 # (handle, key) -> value
 $.this_get = $(call $.get,$($.this),$1)
-$.this_get_raw = $(call $.get_raw,$($.this),$1)
 
 # (handle) -> text
 $.object.to_string = {$(foreach property,$($1),$(call $.property.to_string,$(property)))}
@@ -153,15 +149,19 @@ $.to_string = $(if $(1:$.property/%=),$(if $(1:$.object/%=),$1,$(call $.object.t
 # () -> handle
 # (key) -> value
 $.@ = $(if $1,$(call $.this_get,$1),$($.this))
-$.@r = $(if $1,$(call $.this_get_raw,$1),$($.this))
 
-$.unspace.right = $.unspace.right_separator__
+# $.unspace is used to remove spaces
+# Unspace marker will make $.unspace remove 1 space in specified direction
+$.unspace.right = $.unspace.right_maker__
+$.unspace.left = $.unspace.left_maker__
 
 # (text) -> text
-$.unspace.wrap = $1$($.unspace.right)
+$.unspace.rwrap = $1$($.unspace.right)
+$.unspace.lwrap = $($.unspace.left)$1
+$.unspace.wrap = $($.unspace.left)$1$($.unspace.right)
 
 # (text) -> text
-$.unspace = $(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))
+$.unspace = $(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))
 
 
 # Macro API
@@ -180,16 +180,16 @@ endef
 $.macro.storage := $(call $.new_object)
 
 # (macro) -> ()
-$.macro.register = $(eval $($.macro.storage) += $(call $.set,$(call $.get_raw,$1,key),$1))
+$.macro.register = $(eval $($.macro.storage) += $(call $.set,$(call $.get,$1,key),$1))
 
 # (macro, context) -> ()
-$.macro.use_context = $(eval $.this = $(or $2,$(call $.get_raw,$(macro),$.context)))
+$.macro.use_context = $(eval $.this = $(or $2,$(call $.get,$(macro),$.context)))
 
 # (key, context) -> macro_text
-$.macro.get = $(foreach macro,$(call $.get_raw,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(call $.get_raw,$(macro),$.source)$($.macro.linebreak))
+$.macro.get = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(call $.get,$(macro),$.source)$($.macro.linebreak))
 
 # (key, context) -> ()
-$.macro.invoke = $(foreach macro,$(call $.get_raw,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(eval $(call $.get_raw,$(macro),$.source)$($.macro.linebreak)))
+$.macro.invoke = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(eval $(call $.get,$(macro),$.source)$($.macro.linebreak)))
 
 # (key, context) -> ()
 $.eval = $(call $.macro.invoke,$1,$2)
