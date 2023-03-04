@@ -244,6 +244,8 @@ $.new_target = $(strip $(call $.new_target.implementation,$1))
 # (step,context,properties) -> handle
 $.new_generator = $(call $.new_macro,$.generate$(if $2,_$2):$1,$3)
 
+# FIXME: deferred target generators seem to not work properly
+$.defer = $(call $.new_macro,$.defer)
 
 # Codegen API
 # Codegen API is used to generate Makefile code.
@@ -288,7 +290,7 @@ define $.make.implementation =
 endef
 
 # () -> ()
-$.make = $(eval $($.make.implementation))
+$.make = $(call $.macro.invoke,$.defer)$(eval $($.make.implementation))
 $.make_subprojects = $(foreach project,$($.project.subprojects),$(MAKE) -C $(dir $(project)) -f $(notdir $(project));)
 
 .DEFAULT_GOAL := $.make
