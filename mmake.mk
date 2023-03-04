@@ -269,7 +269,6 @@ $.codegen.write = $(file > $($.target_makefile),$($.codegen.generate))
 
 # Main Entrypoint
 # The $.make function performs actual makefile generation.
-# It's designed to be called after the configuration code.
 
 # () -> ()
 define $.make.implementation =
@@ -279,5 +278,9 @@ endef
 
 # () -> ()
 $.make = $(eval $($.make.implementation))
+
+.DEFAULT_GOAL := $.default
+$.default:
+>	$($.make)
 
 endif
