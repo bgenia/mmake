@@ -89,8 +89,8 @@ $.property.get_storage = $.property.store.$(call $.property.decode,$1)
 # (handle) -> key
 $.property.get_key = $($(call $.property.get_storage,$1).key)
 
-# (handle) -> value
-$.property.get_value = $($(call $.property.get_storage,$1).value)
+# (handle, ...args) -> value
+$.property.get_value = $(call $(call $.property.get_storage,$1).value,$2,$3,$4,$5,$6)
 
 # (handle) -> text
 $.property.to_string = [$(call $.property.get_key,$1)=$(call $.property.get_value,$1)]
@@ -123,14 +123,14 @@ $.object.encode = $.object/$1
 # (handle) -> index
 $.object.decode = $(patsubst $.object/%,%,$1)
 
-# (handle, key) -> value
-$.object.get = $(call $.unspace,$(call $.unspace,$(foreach property,$($1),$(call $.unspace.rwrap,$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property)) ))))$($.unspace.left))
+# (handle, key, ...args) -> value
+$.object.get = $(call $.unspace,$(call $.unspace,$(foreach property,$($1),$(call $.unspace.rwrap,$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property),$3,$4,$5,$6,$7) ))))$($.unspace.left))
 
-# (handle, key) -> value
-$.get = $(call $.object.get,$1,$2)
+# (handle, key, ...args) -> value
+$.get = $(call $.object.get,$1,$2,$3,$4,$5,$6,$7)
 
-# (handle, key) -> value
-$.this_get = $(call $.get,$($.this),$1)
+# (key, ...args) -> value
+$.this_get = $(call $.get,$($.this),$1,$2,$3,$4,$5,$6)
 
 # (handle) -> text
 $.object.to_string = {$(foreach property,$($1),$(call $.property.to_string,$(property)))}
@@ -152,8 +152,8 @@ $.new_object = $(strip $(call $.new_object.implementation,$1))
 $.to_string = $(if $(1:$.property/%=),$(if $(1:$.object/%=),$1,$(call $.object.to_string,$1)),$(call $.property.to_string,$1))
 
 # () -> handle
-# (key) -> value
-$.@ = $(if $1,$(call $.this_get,$1),$($.this))
+# (key, ...args) -> value
+$.@ = $(if $1,$(call $.this_get,$1,$2,$3,$4,$5,$6),$($.this))
 
 # $.unspace is used to remove spaces
 # Unspace marker will make $.unspace remove 1 space in specified direction
@@ -192,14 +192,14 @@ $.macro.register = $(eval $($.macro.storage) += $(call $.set,$(call $.get,$1,key
 # (macro, context) -> ()
 $.macro.use_context = $(eval $.this = $(or $2,$(call $.get,$(macro),$.context)))
 
-# (key, context) -> macro_text
-$.macro.get = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(call $.get,$(macro),$.source)$($.macro.linebreak))
+# (key, context, ...args) -> macro_text
+$.macro.get = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(call $.get,$(macro),$.source,$3,$4,$5,$6,$7)$($.macro.linebreak))
 
-# (key, context) -> ()
-$.macro.invoke = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(eval $(call $.get,$(macro),$.source)$($.macro.linebreak)))
+# (key, context, ...args) -> ()
+$.macro.invoke = $(foreach macro,$(call $.get,$($.macro.storage),$1),$(call $.macro.use_context,$(macro),$2)$($.macro.linebreak)$(eval $(call $.get,$(macro),$.source,$3,$4,$5,$6,$7)$($.macro.linebreak)))
 
-# (key, context) -> ()
-$.eval = $(call $.macro.invoke,$1,$2)
+# (key, context, ...args) -> ()
+$.eval = $(call $.macro.invoke,$1,$2,$3,$4,$5,$6,$7)
 
 # (key, properties) -> handle
 define $.new_macro.implementation =
