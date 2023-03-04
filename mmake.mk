@@ -12,6 +12,11 @@
 ifndef __mmake
 __mmake := 1
 
+# Export mmake path to subprojects
+
+export MMAKEFILE := $(shell realpath $(lastword $(MAKEFILE_LIST)))
+export MMAKEPATH := $(dir $(MMAKEFILE))
+
 # MMake alias
 
 . := __mmake.
@@ -164,6 +169,8 @@ $.unspace.wrap = $($.unspace.left)$1$($.unspace.right)
 $.unspace = $(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))
 
 
+$.none :=
+
 # Macro API
 # Macros are used to store reusable make code. They can be accessed as plain text using $.macro.get or evaluated using $.macro.invoke.
 # Macros are implemented as $.objects, which means that you can add properties to them.
@@ -215,6 +222,10 @@ $.new_macro = $(strip $(call $.new_macro.implementation,$1,$2))
 $.project := $(call $.new_object)
 
 $.project.targets = $(call $.get,$($.project),targets)
+$.project.subprojects = $(call $.get,$($.project),subprojects)
+
+# (paths) -> properties
+$.add_subproject = $(call $.set,subprojects,$1)
 
 # (properties) -> handle
 define $.new_target.implementation =
@@ -278,9 +289,11 @@ endef
 
 # () -> ()
 $.make = $(eval $($.make.implementation))
+$.make_subprojects = $(foreach project,$($.project.subprojects),$(MAKE) -C $(dir $(project)) -f $(notdir $(project));)
 
-.DEFAULT_GOAL := $.default
-$.default:
+.DEFAULT_GOAL := $.make
+$.make:
+>	$($.make_subprojects)
 >	$($.make)
 
 endif
