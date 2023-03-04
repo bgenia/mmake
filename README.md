@@ -59,9 +59,6 @@ $$(info building target $(call $.@,name))
 $(call $.@,name): $(call $.@,sources)
 >   $$(CC) $$^ -o $$@
 endef
-
-# MMake entrypoint
-$($.make)
 ```
 
 Running mmake:
