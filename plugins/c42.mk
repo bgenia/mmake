@@ -87,7 +87,7 @@ $(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOUR
 
 $(call $.@,name).DEPENDENCIES := $$($(call $.@,name).OBJECTS:%.o=%.d)
 
-DEPENDENCIES += $(call $.@,name).DEPENDENCIES
+DEPENDENCIES += $($(call $.@,name).DEPENDENCIES)
 
 $(call $.@,name).OBJECT_DIRECTORIES = $$(sort $$(dir $$($(call $.@,name).OBJECTS)))
 endef
