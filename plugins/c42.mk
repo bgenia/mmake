@@ -25,6 +25,9 @@ $($.project) += $(call $.set,CFLAGS,-Wall -Werror -Wextra -MMD)
 $.new_executable = $(call $.new_target,$(call $.set,type,executable) $(call $.set,name,$1) $(call $.set,sources,$2))
 $.new_static_library = $(call $.new_target,$(call $.set,type,static_library) $(call $.set,name,$1) $(call $.set,sources,$2) $(call $.set,ARFLAGS,-rcs))
 
+# (target, name)
+$.new_variant = $(call $.new_target,$(foreach property,$($1),$(if $(findstring name,$(call $.property.get_key,$(property))),,$(property))) $(call $.set,name,$2))
+
 # (sources) -> properties
 $.add_sources = $(call $.set,sources,$1)
 
