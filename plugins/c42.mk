@@ -133,7 +133,7 @@ define $(call $.new_generator,util)
 # Utility rules
 .PHONY: clean
 clean:
->	$$(RM) $(foreach target,$(call $.@,targets),$$($(call $.get,$(target),name).OBJECTS))
+>	$$(RM) $(foreach target,$(call $.@,targets),$$($(call $.get,$(target),name).OBJECTS)) $$(DEPENDENCIES)
 
 .PHONY: fclean
 fclean: clean
