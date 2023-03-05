@@ -80,7 +80,7 @@ $(call $.@,name).SOURCE_ROOT := $(addsuffix /,$(patsubst %/,%,$(call $.@,source_
 $(call $.@,name).BUILD_ROOT := $(addsuffix /,$(patsubst %/,%,$(or $(call $.@,build_root),build)))
 
 $(call $.@,name).SOURCES := $(call $.@,sources)
-$(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOURCE_ROOT)%.c=($(call $.@,name).BUILD_ROOT)%.o)
+$(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOURCE_ROOT)%.c=$$($(call $.@,name).BUILD_ROOT)%.o)
 
 $(call $.@,name).DEPENDENCIES := $$($(call $.@,name).OBJECTS:%.o=%.d)
 
@@ -97,7 +97,7 @@ all: $(foreach target,$(call $.@,targets),$(call $.get,$(target),name))
 endef
 
 define executable_recipe
-$$(CC) $$(LDLIBS) $$^ $$(LDFLAGS) -o $$@
+$$(CC) $$(LDFLAGS) $$^ $$(LDLIBS) -o $$@
 endef
 
 define static_library_recipe
@@ -106,12 +106,12 @@ endef
 
 define $(call $.new_generator,build,target)
 # Build target $(call $.@,name)
-$(call $.@,name): .EXTRA_PRERQS := $(foreach dependency,$(call $.@,make_dependencies),$(call $.get,$(dependency),target))
+$(call $.@,name): .EXTRA_PREREQS := $(foreach dependency,$(call $.@,make_dependencies),$(call $.get,$(dependency),target))
 $(call $.@,name): $$($(call $.@,name).OBJECTS)$(if $(findstring ./,$(dir $(call $.@,name))),, | $(dir $(call $.@,name)))
 >	$($(call $.@,type)_recipe)
 
 $$($(call $.@,name).BUILD_ROOT)%.o: $$($(call $.@,name).SOURCE_ROOT)%.c | $$($(call $.@,name).OBJECT_DIRECTORIES)
->	$$(CC) $$(CFLAGS) $$(CPPFLAGS) $$^ -o $$@
+>	$$(CC) -c $$(CFLAGS) $$(CPPFLAGS) $$^ -o $$@
 
 $(if $(findstring ./,$(dir $(call $.@,name))),,$(dir $(call $.@,name)) )$$($(call $.@,name).OBJECT_DIRECTORIES):
 >	mkdir -p $$@
@@ -124,6 +124,7 @@ endef
 
 define $(call $.new_generator,util)
 PHONY: force-phony
+force-phony:;
 
 $(foreach dependency,$(foreach target,$(call $.@,targets),$(call $.get,$(target),make_dependencies)),$(call $.macro.get,generate_make_dependency,$(dependency)))
 endef
