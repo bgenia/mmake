@@ -18,7 +18,7 @@ __mmake_plugin_c42 := 1
 
 
 # Project configuration
-$($.project) += $(call $.set,CFLAGS,-Wall -Werror -Wextra)
+$($.project) += $(call $.set,CFLAGS,-Wall -Werror -Wextra -MMD)
 
 # Target configuration
 # (name, sources) -> handle
