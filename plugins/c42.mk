@@ -87,7 +87,7 @@ $(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOUR
 
 $(call $.@,name).DEPENDENCIES := $$($(call $.@,name).OBJECTS:%.o=%.d)
 
-DEPENDENCIES += $($(call $.@,name).DEPENDENCIES)
+DEPENDENCIES += $$($(call $.@,name).DEPENDENCIES)
 
 $(call $.@,name).OBJECT_DIRECTORIES = $$(sort $$(dir $$($(call $.@,name).OBJECTS)))
 endef
@@ -136,7 +136,7 @@ define $(call $.new_generator,util)
 # Utility rules
 .PHONY: clean
 clean:
->	$$(RM) $(foreach target,$(call $.@,targets),$$($(call $.get,$(target),name).OBJECTS)) $$(DEPENDENCIES)
+>	$$(RM) -r $(foreach target,$(call $.@,targets),$$($(call $.get,$(target),name).OBJECTS) $$($(call $.get,$(target),name).OBJECT_DIRECTORIES)) $$(DEPENDENCIES)
 
 .PHONY: fclean
 fclean: clean
