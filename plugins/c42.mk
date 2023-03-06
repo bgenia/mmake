@@ -59,6 +59,14 @@ MAKEFLAGS += --no-print-directories --jobs
 endef
 
 define $(call $.new_generator,configure)
+# Build mode configuration
+# Build mode can be passed from environment using BUILD variable
+# Default build mode
+DEFAULT_BUILD := $(or $(call $.@,default_build_mode),release)
+CURRENT_BUILD := $$(or $$(BUILD),$$(DEFAULT_BUILD))
+endef
+
+define $(call $.new_generator,configure)
 # Project configuration
 CC = $(or $(call $.@,CC),cc)
 
@@ -86,8 +94,10 @@ $(call $.@,name): ARFLAGS += $(call $.@,ARFLAGS)
 $(call $.@,name).SOURCE_ROOT := $(addsuffix /,$(patsubst %/,%,$(call $.@,source_root)))
 $(call $.@,name).BUILD_ROOT := $(addsuffix /,$(patsubst %/,%,$(or $(call $.@,build_root),build)))
 
+$(call $.@,name).BUILD_DIRECTORY := $(addsuffix $$(CURRENT_BUILD)/$(call $.@,name)/,$$($(call $.@,name).BUILD_ROOT))
+
 $(call $.@,name).SOURCES := $(call $.@,sources)
-$(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOURCE_ROOT)%.c=$$($(call $.@,name).BUILD_ROOT)%.o)
+$(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOURCE_ROOT)%.c=$$($(call $.@,name).BUILD_DIRECTORY)%.o)
 
 $(call $.@,name).DEPENDENCIES := $$($(call $.@,name).OBJECTS:%.o=%.d)
 
@@ -100,7 +110,7 @@ define $(call $.new_generator,build)
 # Build project
 .DEFAULT_GOAL := all
 .PHONY: all
-all: $(foreach target,$(call $.@,targets),$(call $.get,$(target),name))
+all: $(foreach target,$(call $.@,targets),$(if $(call $.get,$(target),build_mode),$$(if $$(findstring $(call $.get,$(target),build_mode),$$(CURRENT_BUILD)),$(call $.get,$(target),name)),$(call $.get,$(target),name)))
 endef
 
 define executable_recipe
@@ -117,7 +127,7 @@ $(call $.@,name): .EXTRA_PREREQS := $(foreach dependency,$(call $.@,make_depende
 $(call $.@,name): $$($(call $.@,name).OBJECTS)$(if $(findstring ./,$(dir $(call $.@,name))),, | $(dir $(call $.@,name)))
 >	$($(call $.@,type)_recipe)
 
-$$($(call $.@,name).BUILD_ROOT)%.o: $$($(call $.@,name).SOURCE_ROOT)%.c | $$($(call $.@,name).OBJECT_DIRECTORIES)
+$$($(call $.@,name).BUILD_DIRECTORY)%.o: $$($(call $.@,name).SOURCE_ROOT)%.c | $$($(call $.@,name).OBJECT_DIRECTORIES)
 >	$$(CC) -c $$(CFLAGS) $$(CPPFLAGS) $$^ -o $$@
 
 $(if $(findstring ./,$(dir $(call $.@,name))),,$(dir $(call $.@,name)) )$$($(call $.@,name).OBJECT_DIRECTORIES):
@@ -140,11 +150,15 @@ define $(call $.new_generator,util)
 # Utility rules
 .PHONY: clean
 clean:
->	$$(RM) -r $(foreach target,$(call $.@,targets),$$($(call $.get,$(target),name).OBJECTS) $$($(call $.get,$(target),name).OBJECT_DIRECTORIES)) $$(DEPENDENCIES)
+>	$$(RM) -r $(foreach target,$(call $.@,targets),$$(if $$(BUILD),$$($(call $.get,$(target),name).BUILD_DIRECTORY),$$($(call $.get,$(target),name).BUILD_ROOT)))
 
 .PHONY: fclean
 fclean: clean
+ifndef BUILD
 >	$$(RM) $(foreach target,$(call $.@,targets),$(call $.get,$(target),name))
+else
+>	$$(RM) $(foreach target,$(call $.@,targets),$(if $(call $.get,$(target),build_mode),$$(if $$(findstring $(call $.get,$(target),build_mode),$$(CURRENT_BUILD)),$(call $.get,$(target),name)),$(call $.get,$(target),name)))
+endif
 
 re: fclean .WAIT all
 endef
