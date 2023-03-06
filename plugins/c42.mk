@@ -25,12 +25,12 @@ $.use_42 = $(call $.use_strict) $(call $.use_user_dependencies)
 # Project configuration
 
 # Target configuration
-# (name, sources) -> handle
-$.new_executable = $(call $.new_target,$(call $.set,type,executable) $(call $.set,name,$1) $(call $.set,sources,$2))
-$.new_static_library = $(call $.new_target,$(call $.set,type,static_library) $(call $.set,name,$1) $(call $.set,sources,$2) $(call $.set,ARFLAGS,-rcs))
+# (name, sources, properties) -> handle
+$.new_executable = $(call $.new_target,$(call $.set,type,executable) $(call $.set,name,$1) $(call $.set,sources,$2) $3)
+$.new_static_library = $(call $.new_target,$(call $.set,type,static_library) $(call $.set,name,$1) $(call $.set,sources,$2) $(call $.set,ARFLAGS,-rcs) $3)
 
-# (target, name)
-$.new_variant = $(call $.new_target,$(foreach property,$($1),$(if $(findstring name,$(call $.property.get_key,$(property))),,$(property))) $(call $.set,name,$2))
+# (target, name, properties)
+$.new_variant = $(call $.new_target,$(foreach property,$($1),$(if $(findstring name,$(call $.property.get_key,$(property))),,$(property))) $(call $.set,name,$2) $3)
 
 # (sources) -> properties
 $.add_sources = $(call $.set,sources,$1)
