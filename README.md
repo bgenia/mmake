@@ -10,9 +10,26 @@ Modules:
 
 + `mmake.mk` - Core module, provides configuration & codegen APIs
 + `plugins/`
-  + (coming soon)
+  + `c42.mk` - Ecole 42 / C language project build (prototype)
 
 ## Examples
+
+### Building C project with `c42` plugin
+
+`Makefile.mk`
+
+```Makefile
+include mmake/mmake.mk
+include mmake/plugins/c42.mk
+
+a.out := $(call $.new_executable,a.out,$(wildcard src/*.c))
+
+$(a.out) += $(call $.add_include_directories,include)
+```
+
+This will generate a proper norm conforming makefile for the project.
+
+### Using core features without plugins
 
 Basic codegen example without plugins
 
