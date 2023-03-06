@@ -14,7 +14,7 @@ __mmake := 1
 
 # Export mmake path to subprojects
 
-export MMAKEFILE := $(shell realpath $(lastword $(MAKEFILE_LIST)))
+export MMAKEFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
 export MMAKEPATH := $(dir $(MMAKEFILE))
 
 # MMake alias
