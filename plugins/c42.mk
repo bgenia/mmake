@@ -16,9 +16,13 @@ endif
 ifndef __mmake_plugin_c42
 __mmake_plugin_c42 := 1
 
+# General configuration
+$.use_strict = $(call $.set,CFLAGS,-Wall -Wextra -Werror)
+$.use_user_dependencies = $(call $.set,CFLAGS,-MMD)
+
+$.use_42 = $(call $.use_strict) $(call $.use_user_dependencies)
 
 # Project configuration
-$($.project) += $(call $.set,CFLAGS,-Wall -Werror -Wextra -MMD)
 
 # Target configuration
 # (name, sources) -> handle
