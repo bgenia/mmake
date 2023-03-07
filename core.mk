@@ -63,6 +63,9 @@ $.unspace.left = $.unspace.left_maker__
 # (text) -> text
 $.unspace = $(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))
 
+# (text) -> text
+$.escape = $(subst $$,$$$$,$1)
+
 # Entity API
 # Entities are anonymous values that are passed by their handles.
 # For each anonymous object a unique variable is created, it's name is used as a handle.
