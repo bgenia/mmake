@@ -63,9 +63,11 @@ $.unspace.left = $.unspace.left_maker__
 # (text) -> text
 $.unspace = $(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))
 
+# Replaces all $ with $$
 # (text) -> text
 $.escape = $(subst $$,$$$$,$1)
 
+# Strips defined content (e.g define $(call $.autostrip,my_text))
 # (name) -> name
 $.autostrip = $.autostrip/$1$(eval $1 = $$(strip $$(call $.autostrip/$1,$$1,$$2,$$3,$$4,$$5,$$6,$$7,$$8,$$9)))
 
