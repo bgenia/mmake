@@ -93,7 +93,7 @@ $.property.get_key = $($1.key)
 $.property.get_value = $(call $1.value,$2,$3,$4,$5,$6)
 
 # (key, value, flavor?) -> handle
-$.new_property = $(foreach handle,$(call $.new_entity,$.property),$(handle)$(eval $(handle).key := $$()$1$$())$(eval $(handle).value $(or $3,=) $$()$2$$()))
+$.new_property = $(foreach handle,$(call $.new_entity,$.property),$(handle)$(eval $(handle).key := $$()$(call $.escape,$1)$$())$(eval $(handle).value $(or $3,=) $$()$(call $.escape,$2)$$()))
 $.set = $(call $.new_property,$1,$2,$3)
 
 # $.object is a list of $.properties
