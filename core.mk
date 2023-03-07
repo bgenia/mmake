@@ -67,7 +67,7 @@ $.unspace = $(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $(
 $.escape = $(subst $$,$$$$,$1)
 
 # (name) -> name
-$.autostrip = $.autostrip/$1$(eval $1 = $$(strip $$($.autostrip/$1)))
+$.autostrip = $.autostrip/$1$(eval $1 = $$(strip $$(call $.autostrip/$1,$$1,$$2,$$3,$$4,$$5,$$6,$$7,$$8,$$9)))
 
 # Entity API
 # Entities are anonymous values that are passed by their handles.
