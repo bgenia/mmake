@@ -86,9 +86,6 @@ $.property.get_key = $($1.key)
 # (handle, ...args) -> value
 $.property.get_value = $(call $1.value,$2,$3,$4,$5,$6)
 
-# (handle) -> text
-$.property.to_string = [$(call $.property.get_key,$1)=$(call $.property.get_value,$1)]
-
 # (key, value, flavor?) -> handle
 $.new_property = $(foreach handle,$(call $.new_entity,$.property),$(handle)$(eval $(handle).key := $$()$1$$())$(eval $(handle).value $(or $3,=) $$()$2$$()))
 $.set = $(call $.new_property,$1,$2,$3)
@@ -98,9 +95,6 @@ $.set = $(call $.new_property,$1,$2,$3)
 # (handle, key, ...args) -> value
 $.object.get = $(call $.unspace,$(call $.unspace,$(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property),$3,$4,$5,$6,$7) )$($.unspace.right)))$($.unspace.left))
 $.get = $(call $.object.get,$1,$2,$3,$4,$5,$6,$7)
-
-# (handle) -> text
-$.object.to_string = {$(foreach property,$($1),$(call $.property.to_string,$(property)))}
 
 # (properties) -> handle
 $.new_object = $(foreach handle,$(call $.new_entity,$.object),$(handle)$(eval $(handle) = $1))
