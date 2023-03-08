@@ -61,6 +61,7 @@ $.unspace.right = $.unspace.right_marker__
 $.unspace.left = $.unspace.left_marker__
 # Line marker makes $.unspace remove the folloing newline.
 $.unspace.line = $.unspace.line_marker__
+$.noline = $.unspace.line
 
 define $.unspace.line.linebreak :=
 
