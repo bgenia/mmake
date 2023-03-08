@@ -108,6 +108,10 @@ $.set = $(call $.new_property,$1,$2,$3)
 $.object.get = $(call $.unspace,$(call $.unspace,$(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property),$3,$4,$5,$6,$7) )$($.unspace.right)))$($.unspace.left))
 $.get = $(call $.object.get,$1,$2,$3,$4,$5,$6,$7)
 
+# (handle, key) -> 1 | ``
+$.object.has = $(if $(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),x)),1)
+$.has = $(call $.object.has,$1,$2)
+
 # (properties) -> handle
 $.new_object = $(foreach handle,$(call $.new_entity,$.object),$(handle)$(eval $(handle) = $1))
 
