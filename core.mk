@@ -57,10 +57,10 @@ $.config.target_makefile := Makefile
 
 # $.unspace is used to remove whitespace characters with special markers
 # Right/left whitespace markers make $.unspace remove 1 space in specified direction
-$.unspace.right = $.unspace.right_marker__
-$.unspace.left = $.unspace.left_marker__
+$.unspace.right := $.unspace.right_marker__
+$.unspace.left := $.unspace.left_marker__
 # Line marker makes $.unspace remove the folloing newline.
-$.unspace.line = $.unspace.line_marker__
+$.unspace.line := $.unspace.line_marker__
 $.noline = $($.unspace.line)
 
 define $.unspace.line.linebreak :=
@@ -166,7 +166,7 @@ $.macro.register = $(eval $($.macros) += $(call $.set,$(call $.get,$1,$.name),$1
 $.macro.define_context = $(call $.define_context,$(or $(call $.get,$1,$.context),$2))
 
 # (name, context, ...args) -> text
-$.macro.get = $(foreach macro,$(call $.get,$($.macros),$1),$(call $.macro.define_context,$(macro),$2)$($.macro.linebreak)$(call $.get,$(macro),$.source,$3,$4,$5,$6,$7)$($.macro.linebreak))
+$.macro.get = $(foreach macro,$(call $.get,$($.macros),$1),<$(call $.macro.define_context,$(macro),$2)$(call $.get,$(macro),$.source,$3,$4,$5,$6,$7)>)
 
 # (name, context, ...args) -> ()
 $.macro.eval = $(eval $(call $.macro.get,$1,$2,$3,$4,$5,$6,$7))
@@ -214,12 +214,12 @@ $.template.steps := init configure build util end
 $.template.scopes := project target
 
 # (step, scope) -> makefile_source
-$.template.make_scoped_step = $(call $.macro.get,$.template/$1/$2,$($.project))
+$.template.make_scoped_step = scope{$(call $.macro.get,$.template/$1/$2,$($.project))}
 
 # (step) -> makefile_source
-$.template.make_step = $(foreach scope,$($.template.scopes),$(call $.template.make_scoped_step,$1,$(scope)))
+$.template.make_step = step{$(foreach scope,$($.template.scopes),$(call $.template.make_scoped_step,$1,$(scope)))}
 
-$.template = $(foreach step,$($.template.steps),$(call $.template.make_step,$(step)))
+$.template = template{$(foreach step,$($.template.steps),$(call $.template.make_step,$(step)))}
 
 # Make API
 # Main entrypoint & makefile generation
@@ -237,7 +237,7 @@ $.make_subprojects:
 $.make: $.make_subprojects
 >	$(info Using mmake: v$($.version))
 >	$(info Using project configuration: $(call $.to_string,$($.project)))
->	$($.make)
+>	$(info $($.make))
 >	$(info Generated makefile: $($.config.target_makefile))
 
 .DEFAULT_GOAL := $.make
