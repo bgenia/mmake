@@ -114,7 +114,9 @@ $.set = $(call $.new_property,$1,$2,$3)
 
 # (handle, key, ...args) -> value
 $.object.get = $(call $.unspace,$(call $.unspace,$(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property),$3,$4,$5,$6,$7) )$($.unspace.right)))$($.unspace.left))
+$.object.get_joined = $(call $.unspace,$(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),$(call $.property.get_value,$(property),$3,$4,$5,$6,$7))$($.unspace.right)))
 $.get = $(call $.object.get,$1,$2,$3,$4,$5,$6,$7)
+$.get! = $(call $.object.get_joined,$1,$2,$3,$4,$5,$6,$7)
 
 # (handle, key) -> 1 | ``
 $.object.has = $(if $(foreach property,$($1),$(if $(filter $2,$(call $.property.get_key,$(property))),x)),1)
@@ -136,10 +138,12 @@ $.define_context = $(eval $.this = $()$1$())
 
 # (key, ...args)
 $.this_get = $(call $.get,$($.this),$1,$2,$3,$4,$5,$6)
+$.this_get! = $(call $.get!,$($.this),$1,$2,$3,$4,$5,$6)
 
 # Shorthand $.this accessor, acts as $.this_get when a key is passed
 # (key?, ...args)
 $.@ = $(if $1,$(call $.this_get,$1,$2,$3,$4,$5,$6),$($.this))
+$.@! = $(if $1,$(call $.this_get!,$1,$2,$3,$4,$5,$6),$($.this))
 
 # Macro API
 # Macros are used to store reusable make code. They can be assecced as text using $.macro.get or evaluated using $.macro.eval.
