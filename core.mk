@@ -61,7 +61,7 @@ $.unspace.right = $.unspace.right_marker__
 $.unspace.left = $.unspace.left_marker__
 # Line marker makes $.unspace remove the folloing newline.
 $.unspace.line = $.unspace.line_marker__
-$.noline = $.unspace.line
+$.noline = $($.unspace.line)
 
 define $.unspace.line.linebreak :=
 
@@ -69,7 +69,7 @@ define $.unspace.line.linebreak :=
 endef
 
 # (text) -> text
-$.unspace = $(subst $($.unspace.line),$(subst $($.unspace.line)$($.unspace.line.linebreak),,$(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))))
+$.unspace = $(subst $($.unspace.line),,$(subst $($.unspace.line)$($.unspace.line.linebreak),,$(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))))
 
 # Replaces all $ with $$
 # (text) -> text
