@@ -170,7 +170,7 @@ $.macro.register = $(eval $($.macros) += $(call $.set,$(call $.get,$1,$.name),$1
 $.macro.define_context = $(call $.define_context,$(or $(call $.get,$1,$.context),$2))
 
 # (name, context, ...args) -> text
-$.macro.get = $(foreach macro,$(call $.get,$($.macros),$1),<$(call $.macro.define_context,$(macro),$2)$(call $.get,$(macro),$.source,$3,$4,$5,$6,$7)>)
+$.macro.get = $(call $.unspace,$(foreach macro,$(call $.get,$($.macros),$1),$(call $.macro.define_context,$(macro),$2)$(call $.get,$(macro),$.source,$3,$4,$5,$6,$7)$($.macro.linebreak)$($.unspace.right)))
 
 # (name, context, ...args) -> ()
 $.macro.eval = $(eval $(call $.macro.get,$1,$2,$3,$4,$5,$6,$7))
@@ -218,12 +218,12 @@ $.template.steps := init configure build util end
 $.template.scopes := project target
 
 # (step, scope) -> makefile_source
-$.template.make_scoped_step = scope{$(call $.macro.get,$.template/$1/$2,$($.project))}
+$.template.make_scoped_step = $(call $.macro.get,$.template/$1/$2,$($.project))
 
 # (step) -> makefile_source
-$.template.make_step = step{$(foreach scope,$($.template.scopes),$(call $.template.make_scoped_step,$1,$(scope)))}
+$.template.make_step = $(call $.unspace,$(foreach scope,$($.template.scopes),$(call $.template.make_scoped_step,$1,$(scope))$($.unspace.right)))
 
-$.template = template{$(foreach step,$($.template.steps),$(call $.template.make_step,$(step)))}
+$.template = $(call $.unspace,$(foreach step,$($.template.steps),$(call $.template.make_step,$(step))$($.unspace.right)))
 
 # Make API
 # Main entrypoint & makefile generation
