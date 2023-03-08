@@ -55,13 +55,20 @@ $.config.target_makefile := Makefile
 
 # Utilities
 
-# $.unspace is used to remove spaces
-# Unspace markers make $.unspace remove 1 space in specified direction
-$.unspace.right = $.unspace.right_maker__
-$.unspace.left = $.unspace.left_maker__
+# $.unspace is used to remove whitespace characters with special markers
+# Right/left whitespace markers make $.unspace remove 1 space in specified direction
+$.unspace.right = $.unspace.right_marker__
+$.unspace.left = $.unspace.left_marker__
+# Line marker makes $.unspace remove the folloing newline.
+$.unspace.line = $.unspace.line_marker__
+
+define $.unspace.line.linebreak :=
+
+
+endef
 
 # (text) -> text
-$.unspace = $(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))
+$.unspace = $(subst $($.unspace.line),$(subst $($.unspace.line)$($.unspace.line.linebreak),,$(subst $($.unspace.left),,$(subst $() $($.unspace.left),,$(subst $($.unspace.right),,$(subst $($.unspace.right) ,,$1))))))
 
 # Replaces all $ with $$
 # (text) -> text
