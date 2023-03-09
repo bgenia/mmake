@@ -127,7 +127,7 @@ $.object.has = $(if $(strip $(foreach property,$($1),$(if $(filter $2,$(call $.p
 $.has = $(call $.object.has,$1,$2)
 
 # (properties) -> handle
-$.new_object = $(foreach handle,$(call $.new_entity,$.object),$(handle)$(eval $(handle) = $1))
+$.new_object = $(foreach handle,$(call $.new_entity,$.object),$(handle)$(eval $(handle) := $1))
 
 # $.to_string can be used with both $.objects and $.properties recursively, any other value will be returned as is
 # (value) -> text
@@ -256,7 +256,6 @@ $.make_subprojects:
 .PHONY: $.make
 $.make: $.make_subprojects
 >	$(info Using mmake: v$($.version))
->	$(info Using project configuration: $(call $.to_string,$($.project)))
 >	$(info $($.make))
 >	$(info Generated makefile: $($.config.target_makefile))
 
