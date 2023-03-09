@@ -232,7 +232,9 @@ $.template.steps := init configure build util end
 $.template.scopes := project target
 
 # (step, scope) -> makefile_source
-$.template.make_scoped_step = $(call $.macro.get,$.template/$1/$2,$($.project))
+$.template.make_scoped_step = $(call $.template.make_scoped_step.$2,$1,$2)
+$.template.make_scoped_step.project = $(call $.macro.get,$.template/$1/$2,$($.project))
+$.template.make_scoped_step.target = $(call $.unspace,$(foreach target,$($.project.targets),$(call $.macro.get,$.template/$1/$2,$(target))$($.unspace.right)))
 
 # (step) -> makefile_source
 $.template.make_step = $(call $.unspace,$(foreach scope,$($.template.scopes),$(call $.template.make_scoped_step,$1,$(scope))$($.unspace.right)))
