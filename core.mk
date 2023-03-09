@@ -83,6 +83,10 @@ $.autostrip = $.autostrip/$1$(eval $1 = $$(strip $$(call $.autostrip/$1,$$1,$$2,
 # (handle) -> $(handle)
 $... = $($1)
 
+# Temporaty value storage
+# (name, value) -> value
+$.t = $2$(eval $.t.$1 := $$()$(call $.escape,$2)$$())
+
 # Entity API
 # Entities are anonymous values that are passed by their handles.
 # For each anonymous object a unique variable is created, it's name is used as a handle.
