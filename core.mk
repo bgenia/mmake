@@ -153,6 +153,10 @@ $.@! = $(if $1,$(call $.this_get!,$1,$2,$3,$4,$5,$6),$($.this))
 # - $.name - Macro name
 # - $.context - Default context to eval macro with
 # - $.source - Macro content
+#
+# $.macro object flags
+# - autostrip - Strip macro content
+# - no_final_newline - Not insert final newline
 
 # Macro context can be acccesed using $.this variable and it's aliases.
 
@@ -169,8 +173,14 @@ $.macro.register = $(eval $($.macros) += $(call $.set,$(call $.get,$1,$.name),$1
 # (macro, fallback_context) -> ()
 $.macro.define_context = $(call $.define_context,$(or $(call $.get,$1,$.context),$2))
 
+# (macro, source)
+$.macro.get_source.apply_flags = $(if $(call $.has,$1,autostrip),$(strip $2),$2)$(if $(call $.has,$1,no_final_newline),,$($.macro.linebreak))
+
+# (macro, context, ...args)
+$.macro.get_source = $(call $.macro.define_context,$1,$2)$(call $.macro.get_source.apply_flags,$1,$(call $.get,$(macro),$.source,$3,$4,$5,$6,$7))
+
 # (name, context, ...args) -> text
-$.macro.get = $(call $.unspace,$(foreach macro,$(call $.get,$($.macros),$1),$(call $.macro.define_context,$(macro),$2)$(call $.get,$(macro),$.source,$3,$4,$5,$6,$7)$($.macro.linebreak)$($.unspace.right)))
+$.macro.get = $(call $.unspace,$(foreach macro,$(call $.get,$($.macros),$1),$(call $.macro.get_source,$(macro),$2,$3,$4,$5,$6,$7)$($.unspace.right)))
 
 # (name, context, ...args) -> ()
 $.macro.eval = $(eval $(call $.macro.get,$1,$2,$3,$4,$5,$6,$7))
