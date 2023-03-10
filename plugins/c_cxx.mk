@@ -182,11 +182,11 @@ define $(call $.new_macro,__c_cxx.build_target/static_library,$(call $.set,no_fi
 endef
 
 define $(call $.new_macro,__c_cxx.build_objects/c,$(call $.set,no_final_newline))
->	$$(CC) -c $$(CFLAGS) $$(CPPFLAGS) $$^ -o $$@
+>	$$(CC) -c $$(CFLAGS) $$(CPPFLAGS) $$< -o $$@
 endef
 
 define $(call $.new_macro,__c_cxx.build_objects/cxx,$(call $.set,no_final_newline))
->	$$(CXX) -c $$(CXXFLAGS) $$(CPPFLAGS) $$^ -o $$@
+>	$$(CXX) -c $$(CXXFLAGS) $$(CPPFLAGS) $$< -o $$@
 endef
 
 define $(call $.new_template,build,target)
