@@ -10,100 +10,69 @@ Modules:
 
 + `mmake.mk` - Core module, provides configuration & codegen APIs
 + `plugins/`
-  + `c42.mk` - Ecole 42 / C language project build (prototype)
+  + `c_cxx.mk` - Simple C/C++ plugin
+    + `c_cxx_42.mk` - `c_cxx` plugin extension for Ecole 42 projects
 
 ## Examples
 
-### Building C project with `c42` plugin
+### Building C project with `c_cxx` plugin
 
 `Makefile.mk`
 
 ```Makefile
-include mmake/mmake.mk
-include mmake/plugins/c42.mk
+include mmake/core.mk
+include mmake/plugins/c_cxx.mk
 
-a.out := $(call $.new_executable,a.out,$(wildcard src/*.c))
+program := $(call $.new_executable,program,$(wildcard src/*.c))
 
-$(a.out) += $(call $.add_include_directories,include)
+$(program) += $(call $.add_include_directories,include)
 ```
 
-This will generate a proper norm conforming makefile for the project.
-
-### Using core features without plugins
-
-Basic codegen example without plugins
+### Release/debug target variants
 
 `Makefile.mk`
 
 ```Makefile
-.RECIPEPREFIX := >
+include mmake/core.mk
+include mmake/plugins/c_cxx.mk
 
-include mmake/mmake.mk
+program := $(call $.new_executable,program,main.c)
 
-# Configuration
+# Common release & debug configuration ...
 
-# - Project configuration
-$($.project) += $(call $.set,name,abobus)
-$($.project) += $(call $.set,CC,clang)
+# Creates a new target variant, be careful to specify distinct properties only after this line
+program_debug := $(call $.new_variant,$(program),program_debug)
 
-# - First target
-target1 := $(call $.new_target)
+$(program) += $(call $.add_build_type,release)
+$(program) += $(call $.set,CFLAGS,-O2)
 
-$(target1) += $(call $.set,name,foo)
-$(target1) += $(call $.set,sources,foo.c)
-
-# - Second target
-target2 := $(call $.new_target)
-
-$(target2) += $(call $.set,name,bar)
-$(target2) += $(call $.set,sources,bar.c)
-
-# Codegen
-
-# - Project `init` step generator
-define $(call $.new_generator,init)
-.RECIPEPREFIX := >
-
-$$(info building project $(call $.@,name))
-
-CC = $(call $.@,CC)
-endef
-
-# - Target `build` step generator
-define $(call $.new_generator,build,target)
-$$(info building target $(call $.@,name))
-
-$(call $.@,name): $(call $.@,sources)
->   $$(CC) $$^ -o $$@
-endef
+$(program_debug) += $(call $.add_build_type,debug)
+$(program_debug) += $(call $.set,CFLAGS,-g)
 ```
-
-Running mmake:
 
 ```sh
-make -f Makefile.mk
+make
+make BUILD_TYPE=release
+make BUILD_TYPE=debug
 ```
 
-Result:
+Another way is to use a separate object for common properties
 
-`Makefile`
+`Makefile.mk`
 
 ```Makefile
-.RECIPEPREFIX := >
+include mmake/core.mk
+include mmake/plugins/c_cxx.mk
 
-$(info building project abobus)
+program_common := $(call $.new_object)
 
-CC = clang
+$(program_common) += $(call $.add_sources,$(wildcard src/*.c))
+$(program_common) += $(call $.add_include_directories,include)
 
+program_release := $(call $.new_target,program_release,$(call $...,$(program_common)) $(call $.add_build_type,release))
+program_debug := $(call $.new_target,program_debug,$(call $...,$(program_common)) $(call $.add_build_type,debug))
 
-$(info building target foo)
+$(program_release) += $(call $.set,CFLAGS,-O2)
 
-foo: foo.c
->   $(CC) $^ -o $@
-
-
-$(info building target bar)
-
-bar: bar.c
->   $(CC) $^ -o $@
+$(program_debug) += $(call $.set,CFLAGS,-g)
 ```
