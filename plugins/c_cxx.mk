@@ -55,6 +55,12 @@ $.add_linked_libraries = $(call $.set,LDLIBS,$1)
 # (file, make_directory?, make_args)
 $.add_make_dependency = $(call $.set,make_dependencies,$(call $.new_object,$(call $.set,target,$(strip $1)) $(call $.set,make_directory,$(strip $(or $2,$(dir $1)))) $(call $.set,make_args,$3)))
 
+# (name)
+$.add_dependency = $(call $.set,dependencies,$(call $.new_object,$(call $.set,target,$1)))
+
+# (target)
+$.add_target_dependency = $(call $.add_dependency,$(call $.get,$1,name))
+
 # Configuration preset for building and linking a library from a makefile project
 # (library_file, include_directories?, make_directory?, make_args?) -> properties
 $.use_library_from_sources = $(call $.add_link_directories,$(dir $1)) $(call $.add_linked_libraries,$(addprefix -l:,$(notdir $1))) $(call $.add_include_directories,$2) $(call $.add_make_dependency,$1,$3,$4)
@@ -67,6 +73,7 @@ $.config.default_cc := cc
 $.config.default_cxx := c++
 $.config.default_source_root :=
 $.config.default_build_root := build
+$.config.default_cxx_extension := cpp
 
 $.config.clean_target := clean
 $.config.mostlyclean_target := mostlyclean
@@ -76,6 +83,7 @@ $($.project) += $(call $.set,CPPFLAGS,-MMD)
 
 # Template utilities
 __c_cxx.current_language = $(or $(call $.@,language),$(or $(call $.get,$($.project),language),$($.config.default_language)))
+__c_cxx.current_source_extension = $(if $(findstring cxx,$(__c_cxx.current_language)),$(or $(call $.@,cxx_extension),$(or $(call $.get,$($.project),cxx_extesion),$($.config.default_cxx_extension))),c)
 
 # Templates
 
@@ -137,7 +145,7 @@ $(call $.@,name).BUILD_ROOT := $(addsuffix /,$(patsubst %/,%,$(or $(call $.@,sou
 $(call $.@,name).BUILD_DIRECTORY := $(addsuffix $$(CURRENT_BUILD_TYPE)/$(call $.@,name)/,$$($(call $.@,name).BUILD_ROOT))
 
 $(call $.@,name).SOURCES := $(call $.@,sources)
-$(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOURCE_ROOT)%.c=$$($(call $.@,name).BUILD_DIRECTORY)%.o)
+$(call $.@,name).OBJECTS := $$($(call $.@,name).SOURCES:$$($(call $.@,name).SOURCE_ROOT)%.$(__c_cxx.current_source_extension)=$$($(call $.@,name).BUILD_DIRECTORY)%.o)
 
 $(call $.@,name).OBJECT_DIRECTORIES = $$(sort $$(dir $$($(call $.@,name).OBJECTS)))
 
@@ -191,11 +199,11 @@ endef
 
 define $(call $.new_template,build,target)
 # Build target: $(call $.@,name)
-$(if $(call $.has,$($.@),make_dependencies),$(call $.@,name): .EXTRA_PREREQS := $(foreach dependency,$(call $.@,make_dependencies),$(call $.get,$(dependency),target)),$($.noline))
+$(if $(or $(call $.has,$($.@),make_dependencies) $(call $.has,$($.@),dependencies)),$(call $.@,name): .EXTRA_PREREQS := $(foreach dependency,$(call $.@,make_dependencies),$(call $.get,$(dependency),target))$(foreach dependency,$(call $.@,dependencies),$(call $.get,$(dependency),target)),$($.noline))
 $(call $.@,name): $$($(call $.@,name).OBJECTS)$(if $(findstring ./,$(dir $(call $.@,name))),, | $(dir $(call $.@,name)))
 $(call $.macro.get,__c_cxx.build_target/$(call $.@,type),$($.@))
 
-$$($(call $.@,name).BUILD_DIRECTORY)%.o: $$($(call $.@,name).SOURCE_ROOT)%.c | $$($(call $.@,name).OBJECT_DIRECTORIES)
+$$($(call $.@,name).BUILD_DIRECTORY)%.o: $$($(call $.@,name).SOURCE_ROOT)%.$(__c_cxx.current_source_extension) | $$($(call $.@,name).OBJECT_DIRECTORIES)
 $(call $.macro.get,__c_cxx.build_objects/$(__c_cxx.current_language),$($.@))
 
 $(if $(findstring ./,$(dir $(call $.@,name))),,$(dir $(call $.@,name)) )$$($(call $.@,name).OBJECT_DIRECTORIES):
