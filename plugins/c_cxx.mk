@@ -22,7 +22,7 @@ __mmake_plugin_c_cxx := 1
 
 # (name, sources, properties) -> handle
 $.new_executable = $(call $.new_target,$(call $.set,type,executable) $(call $.set,name,$1) $(call $.set,sources,$2) $3)
-$.new_static_library = $(call $.new_target,$(call $.set,type,static_library) $(call $.set,name,$1) $(call $.set,sources,$2) $(call $.set,ARFLAGS,-rcs) $3)
+$.new_static_library = $(call $.new_target,$(call $.set,type,static_library) $(call $.set,name,$1) $(call $.set,sources,$2) $3)
 
 # Creates a copy if a target with a different name
 # (target, name, properties) -> handle
