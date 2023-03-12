@@ -65,6 +65,11 @@ $.add_target_dependency = $(call $.add_dependency,$(call $.get,$1,name))
 # (library_file, include_directories?, make_directory?, make_args?) -> properties
 $.use_library_from_sources = $(call $.add_link_directories,$(dir $1)) $(call $.add_linked_libraries,$(addprefix -l:,$(notdir $1))) $(call $.add_include_directories,$2) $(call $.add_make_dependency,$1,$3,$4)
 
+# Utils
+
+# (build_types, then, else) -> text
+$.if_build_type = $$(if $$(filter $1,$$(CURRENT_BUILD_TYPE)),$2,$3)
+
 # Default configuration
 ## Plugin configuration
 $.config.default_build_type := release
