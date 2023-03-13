@@ -32,7 +32,7 @@ $.semver_get = $(or $(word $2,$(subst ., ,$1)),0)
 # ~ : same major version, newer minor or patch version
 $.semver_compare = $(intcmp $(call $.semver_get,$1,1),$(call $.semver_get,$2,1),<,$(intcmp $(call $.semver_get,$1,2),$(call $.semver_get,$2,2),~,$(intcmp $(call $.semver_get,$1,3),$(call $.semver_get,$2,3),~,=,>),>),>)
 
-# (semver_current, semver_expected, error_message) -> ()
+# (semver_expected, semver_current, error_message) -> ()
 $.semver_assert_exact = $(if $(filter =,$(call $.semver_compare,$1,$2)),,$(error $3))
 $.semver_assert_compatible = $(if $(filter = ~,$(call $.semver_compare,$1,$2)),,$(error $3))
 $.semver_assert_minimum = $(if $(filter >,$(call $.semver_compare,$1,$2)),$(error $3))
@@ -40,7 +40,7 @@ $.semver_assert_minimum = $(if $(filter >,$(call $.semver_compare,$1,$2)),$(erro
 # Make version checker
 $.required_make_version := 4.4
 
-$(call $.semver_assert_minimum,$(MAKE_VERSION),$($.required_make_version),Your Make version is not compatible with mmake. Please install GNU Make v$($.required_make_version) or newer.)
+$(call $.semver_assert_minimum,$($.required_make_version),$(MAKE_VERSION),Your Make version is not compatible with mmake. Please install GNU Make v$($.required_make_version) or newer.)
 
 # Module glue
 # Allows included makefiles to include mmake modules without specifying direct path
