@@ -47,8 +47,6 @@ $(call $.semver_assert_minimum,$($.required_make_version),$(MAKE_VERSION),Your M
 export MMAKE_CORE := $(abspath $(lastword $(MAKEFILE_LIST)))
 export MMAKE_ROOT := $(dir $(MMAKE_CORE))
 
-MAKEFLAGS += --include-dir=$(dir $(MMAKE_ROOT))
-
 # General mmake configuration
 # Generated makefile path
 $.config.target_makefile := Makefile
@@ -207,7 +205,7 @@ $.project.targets = $(call $.get,$($.project),$.targets)
 $.project.subprojects = $(call $.get,$($.project),$.subprojects)
 
 # (paths) -> properties
-$.add_subprojects = $(call $.set,subprojects,$1)
+$.add_subprojects = $(call $.set,$.subprojects,$1)
 
 # (properties) -> handle
 $.new_target = $(foreach handle,$(call $.new_object,$1),$(handle)$(eval $($.project) += $(call $.set,$.targets,$(handle))))
@@ -251,6 +249,7 @@ $.make_subprojects = $(foreach project,$($.project.subprojects),$(MAKE) -C $(dir
 
 .PHONY: $.make_subprojects
 $.make_subprojects:
+>	$(info Building subprojects : `$($.project.subprojects)`)
 >	$($.make_subprojects)
 
 .PHONY: $.make
