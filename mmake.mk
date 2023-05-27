@@ -37,23 +37,11 @@ $.version := 0.3.0 @proptotype
 $(info Using $$.mmake v$($.version))
 
 
-# $.check namespace is used for assertions and other checks
-
-# Make feature checker, can be opted out by the no_make_feature_check/no_make_checks pragmas.
-# Turning this off is not recommended, expect unstable behavior.
-# (feature_list) -> ()
-$.check.make.assert_features = $(if $(filter-out $(.FEATURES),$1),\
-	$(if $(filter no_make_feature_check no_make_checks,$(MMPRAGMA)),\
-		$(warning Your make installation is missing some of the required features ($(filter-out $(.FEATURES),$1)) to run current mmake setup, expect unstable behavior.),\
-		$(error Your make installation is missing some of the required features ($(filter-out $(.FEATURES),$1)) to run current mmake setup. Update your make installation or change the configuration.)\
-	)\
-)
-
 # Semver utility functions
 
 # Get version number by index from a semver string
 # (semver, index) -> (version_number)
-$.check.semver.get = $(or $(word $2,$(subst ., ,$1)),0)
+$.semver.get = $(or $(word $2,$(subst ., ,$1)),0)
 
 # Compare two semver strings
 # (semver_expected, semver_actual) -> (comparison_result)
@@ -62,42 +50,51 @@ $.check.semver.get = $(or $(word $2,$(subst ., ,$1)),0)
 # - =: semver_actual is equal to semver_expected
 # - >: semver_actual is greater than semver_expected
 # - ~: semver_actual is compatible with semver_expected (same major version and minor/patch versions are greater or equal to semver_expected)
-$.check.semver.compare = $(intcmp $(call $.check.semver.get,$1,1),$(call $.check.semver.get,$2,1),>,$(intcmp $(call $.check.semver.get,$1,2),$(call $.check.semver.get,$2,2),~,$(intcmp $(call $.check.semver.get,$1,3),$(call $.check.semver.get,$2,3),~,=,<),<),<)
+$.semver.compare = $(intcmp $(call $.semver.get,$1,1),$(call $.semver.get,$2,1),>,$(intcmp $(call $.semver.get,$1,2),$(call $.semver.get,$2,2),~,$(intcmp $(call $.semver.get,$1,3),$(call $.semver.get,$2,3),~,=,<),<),<)
 
 # Semver assertion functions
 
 # Asserts that semver_expected is exactly equal to semver_actual
 # (semver_expected, semver_actual, error_message) -> ()
-$.check.semver.assert_exact = $(if $(filter-out =,$(call $.check.semver.compare,$1,$2)),$(error $3))
+$.semver.assert_exact = $(if $(filter-out =,$(call $.semver.compare,$1,$2)),$(error $3))
 
 # Asserts that semver_expected is compatible with semver_actual
 # (semver_expected, semver_actual, error_message) -> ()
-$.check.semver.assert_compatible = $(if $(filter-out = ~,$(call $.check.semver.compare,$1,$2)),$(error $3))
+$.semver.assert_compatible = $(if $(filter-out = ~,$(call $.semver.compare,$1,$2)),$(error $3))
 
 # Asserts that semver_expected is less or equal to semver_actual
 # (semver_expected, semver_actual, error_message) -> ()
-$.check.semver.assert_minimum = $(if $(filter-out = ~ >,$(call $.check.semver.compare,$1,$2)),$(error $3))
+$.semver.assert_minimum = $(if $(filter-out = ~ >,$(call $.semver.compare,$1,$2)),$(error $3))
 
 # Make version checker, can be opted out by the no_make_version_check/no_make_checks pragmas.
 # Turning this off is not recommended, expect unstable behavior.
 # (semver_expected) -> ()
-$.check.make.assert_version = $(if $(filter-out = ~ >,$(call $.check.semver.compare,$1,$(MAKE_VERSION))),\
+$.make.assert_version = $(if $(filter-out = ~ >,$(call $.semver.compare,$1,$(MAKE_VERSION))),\
 	$(if $(filter no_make_version_check no_make_checks,$(MMPRAGMA)),\
 		$(warning Your make installation is not compatible with GNU Make $1 or newer, expect unstable behavior.),\
-		$(call $.check.semver.assert_minimum,$1,$(.VERSION),Your make installation is not compatible with GNU Make $1 or newer. Update your make installation or change the configuration.)\
+		$(call $.semver.assert_minimum,$1,$(.VERSION),Your make installation is not compatible with GNU Make $1 or newer. Update your make installation or change the configuration.)\
 	)\
 )
 
+# Make feature checker, can be opted out by the no_make_feature_check/no_make_checks pragmas.
+# Turning this off is not recommended, expect unstable behavior.
+# (feature_list) -> ()
+$.make.assert_features = $(if $(filter-out $(.FEATURES),$1),\
+	$(if $(filter no_make_feature_check no_make_checks,$(MMPRAGMA)),\
+		$(warning Your make installation is missing some of the required features ($(filter-out $(.FEATURES),$1)) to run current mmake setup, expect unstable behavior.),\
+		$(error Your make installation is missing some of the required features ($(filter-out $(.FEATURES),$1)) to run current mmake setup. Update your make installation or change the configuration.)\
+	)\
+)
 
 # Requirements for compatibility checks
 $.requirements.make_version := 4.4.0
 $.requirements.make_features :=
 
 # Assert minimum make version
-$(call $.check.make.assert_version,$($.make_version))
+$(call $.make.assert_version,$($.make_version))
 
 # Assert make features
-$(call $.check.make.assert_features,$($.make_features))
+$(call $.make.assert_features,$($.make_features))
 
 
 # Core module path exports for glueing submodules together
@@ -129,87 +126,89 @@ $.equals = $(and $(findstring $1,$2),$(findstring $2,$1),1)
 # These utilities are used to facilitate functional programming in makefiles.
 
 # Identity function
-$.fp.identity = $1
+$.identity = $1
 
 # Creates an anonymous $(call)able function
 # (body) -> (handle)
-$.fp.lambda = $(let e,$(call $.entity.create,$.fp.lambda),$(eval $e = $()$1$())$e)
+$.lambda = $(let e,$(call $.entity.create,$.lambda),$(eval $e = $()$1$())$e)
 
-# Creates an argument forwarding list for use in forwarding lambdas.
-# (first_index, count) -> (argument_list)
-$.fp.lambda.forward = $(call $.fp.join,$(call $.fp.map,$(call $.fp.range,$1,$2),$(call $.fp.lambda,$$$$($$1))),$($.format.,))
-
-# Creates a named function using $(eval), can be used with meta constructs such as $.fp.lambda.forward
+# Creates a named function using $(eval), can be used with meta constructs such as $.forward_argv
 # (name, body) -> ()
-$.fp.function = $(eval $1 = $()$2$())
+$.function = $(eval $1 = $()$2$())
 
 # Creates a list of specified length.
 # (length, current_) -> (list)
-$.fp.list = $(if $(and $(findstring $1,$(words $2)),$(findstring $(words $2),$1),1),$2,$(call $.fp.list,$1,$2 x))
+$.list = $(if $(and $(findstring $1,$(words $2)),$(findstring $(words $2),$1),1),$2,$(call $.list,$1,$2 x))
 
 # Creates a list of numbers from $(start) of length $(length)
 # (start, length) -> (list)
-$.fp.range = $(strip $(let s,$(call $.fp.list,$1),$(call $.fp.fold,$(call $.fp.list,$2),$(call $.fp.lambda,$$2 $$(words $s $$2)),)))
+$.range = $(strip $(let s,$(call $.list,$1),$(call $.fold,$(call $.list,$2),$(call $.lambda,$$2 $$(words $s $$2)),)))
 
 # Returns the first element of a list.
 # (list) -> (value)
-$.fp.head = $(firstword $1)
+$.head = $(firstword $1)
 
 # Returns the tail of a list.
 # (list) -> (list)
-$.fp.tail = $(wordlist 2,$(words $1),$1)
+$.tail = $(wordlist 2,$(words $1),$1)
 
 # Returns the last element of a list.
 # (list) -> (value)
-$.fp.last = $(lastword $1)
+$.last = $(lastword $1)
 
 # Returns all but the last element of a list.
 # (list) -> (list)
-$.fp.skip = $(wordlist 1,$(words $(call $.fp.tail,$1)),$1)
+$.skip = $(wordlist 1,$(words $(call $.tail,$1)),$1)
 
 # Applies a function to each element of a list.
 # (list, function: (value) -> (value)) -> (list)
-$.fp.map = $(foreach e,$1,$(call $2,$e))
+$.map = $(foreach e,$1,$(call $2,$e))
 
 # Filters a list by applying a function to each element and returning only the elements for which the function returns true.
 # (list, function: (value) -> (bool)) -> (list)
-$.fp.filter = $(foreach e,$1,$(if $(call $2,$e),$e))
+$.filter = $(foreach e,$1,$(if $(call $2,$e),$e))
 
 # Folds a list by combining each element with the accumulator from right to left
 # (list, function: (value, accumulator) -> (accumulator), accumulator) -> (accumulator)
-$.fp.fold = $(let h t,$1,$(if $h,$(call $2,$h,$(call $.fp.fold,$t,$2,$3)),$3))
+$.fold = $(let h t,$1,$(if $h,$(call $2,$h,$(call $.fold,$t,$2,$3)),$3))
 
 # Reduces a list by combining all elements one by one from right to left
 # (list, function: (value, accumulator) -> (accumulator)) -> (accumulator)
-$.fp.reduce = $(call $.fp.fold,$(call $.fp.skip,$1),$2,$(call $.fp.last,$1))
+$.reduce = $(call $.fold,$(call $.skip,$1),$2,$(call $.last,$1))
 
 # Folds a list by combining each element with the accumulator from left to right.
 # (list, function: (value, accumulator) -> (accumulator), accumulator) -> (accumulator)
-$.fp.fold_right = $(let h t,$1,$(if $h,$(call $.fp.fold_right,$t,$2,$(call $2,$h,$3)),$3))
+$.fold_right = $(let h t,$1,$(if $h,$(call $.fold_right,$t,$2,$(call $2,$h,$3)),$3))
 
 # Reduces a list by combining all elements one by one from left to right
 # (list, function: (value, accumulator) -> (accumulator), initial_value?) -> (accumulator)
-$.fp.reduce_right = $(call $.fp.fold_right,$(call $.fp.tail,$1),$2,$(call $.fp.head,$1))
+$.reduce_right = $(call $.fold_right,$(call $.tail,$1),$2,$(call $.head,$1))
 
 # Joins a list with the specified separator
 # (list, separator) -> (string)
-$.fp.join = $(call $.fp.reduce,$1,$(call $.fp.lambda,$$1$2$$2))
+$.join = $(call $.reduce,$1,$(call $.lambda,$$1$2$$2))
 
 # Combines a list of functions of a single argument into a single function from left to right.
-# (function_list) -> (value)
-$.fp.pipe = $(call $.fp.reduce,$1,$(call $.fp.lambda,$$(call $.fp.lambda,$$$$(call $$2,$$$$(call $$1,$$$$1)))))
+# Note that this function creates a wrapper lambda (a global entity) for each function in a list.
+# (function_list) -> (arg) -> (value)
+$.pipe = $(call $.reduce,$1,$(call $.lambda,$$(call $.lambda,$$$$(call $$2,$$$$(call $$1,$$$$1)))))
 
 # Combines a list of functions of a single argument into a single function from right to left.
-# (function_list) -> (value)
-$.fp.compose = $(call $.fp.reduce_right,$1,$(call $.fp.lambda,$$(call $.fp.lambda,$$$$(call $$2,$$$$(call $$1,$$$$1)))))
+# Note that this function creates a wrapper lambda (a global entity) for each function in a list.
+# (function_list) -> (arg) -> (value)
+$.compose = $(call $.reduce_right,$1,$(call $.lambda,$$(call $.lambda,$$$$(call $$2,$$$$(call $$1,$$$$1)))))
 
 # Generates a list of available function argument variables, works for up to 100 arguments
-# Should be used as a varialbe rather than a function (e.g. $($.fp.argv)) to work
-$.fp.argv = $(strip $(foreach e,$(call $.fp.range,1,100),$(if $(findstring $(origin $e),undefined),,$e)))
+# Should be used as a varialbe rather than a function (e.g. $($.argv)) to work
+$.argv = $(strip $(foreach e,$(call $.range,1,100),$(if $(findstring $(origin $e),undefined),,$e)))
 
 # Computes the number of arguments passed to a function, works for up to 100 arguments
-# Should be used as a varialbe rather than a function (e.g. $($.fp.argc)) to work
-$.fp.argc = $(words $($.fp.argv))
+# Should be used as a varialbe rather than a function (e.g. $($.argc)) to work
+$.argc = $(words $($.argv))
+
+# Creates an argument forwarding list for use in forwarding lambdas.
+# (first_index, count) -> (argument_list)
+$.forward_argv = $(call $.join,$(call $.map,$(call $.range,$1,$2),$(call $.lambda,$$$$($$1))),$($.format.,))
 
 
 # Runtime configuration
@@ -251,14 +250,14 @@ $.format., := ,
 # Format marker handlers
 # (string) -> (string)
 define $.format.handlers :=
-	$(call $.fp.lambda,$$(subst $$($.format.rtrim),,$$(subst $$($.format.rtrim) ,,$$1)))
-	$(call $.fp.lambda,$$(subst $$($.format.ltrim),,$$(subst $$() $$($.format.ltrim),,$$1)))
-	$(call $.fp.lambda,$$(subst $$($.format.noline),,$$(subst $$($.format.noline)$$($.format.\n),,$$1)))
-	$(call $.fp.lambda,$$(subst $$($.format.linebreak),$$($.format.\n),$$1))
-	$(call $.fp.lambda,$$(subst $$($.format.dummy),,$$1))
+	$(call $.lambda,$$(subst $$($.format.rtrim),,$$(subst $$($.format.rtrim) ,,$$1)))
+	$(call $.lambda,$$(subst $$($.format.ltrim),,$$(subst $$() $$($.format.ltrim),,$$1)))
+	$(call $.lambda,$$(subst $$($.format.noline),,$$(subst $$($.format.noline)$$($.format.\n),,$$1)))
+	$(call $.lambda,$$(subst $$($.format.linebreak),$$($.format.\n),$$1))
+	$(call $.lambda,$$(subst $$($.format.dummy),,$$1))
 endef
 
-$.format.impl = $(call $.fp.compose,$($.format.handlers))
+$.format.impl = $(call $.compose,$($.format.handlers))
 
 # Format a string using the format markers
 # (string) -> (formatted_string)
@@ -372,16 +371,16 @@ $.macro.modifiers := $()
 # - if:(function: (source, macro)@context -> (boolean)) : replaces macro source with an empty string if the specified function returned an empty string
 ifeq ($(filter no_default_macro_modifiers,$(MMPRAGMA)),)
 	define $.macro.modifiers +=
-		$(call $.fp.lambda,$$(call $.fp.fold_right,$$(call $.get,$$2,use),$$(call $.fp.lambda,$$$$(call $$$$1,$$$$2,$$2)),$$1))
-		$(call $.fp.lambda,$$(if $$(call $.has,$$2,autostrip),$$(strip $$1),$$1))
-		$(call $.fp.lambda,$$(if $$(call $.has,$$2,noline),$$1,$$1$$($.format.\n)))
-		$(call $.fp.lambda,$$(if $$(call $.has,$$2,if),$$(if $$(call $$(call $.get,$$2,if),$$1,$$2),$$1),$$1))
+		$(call $.lambda,$$(call $.fold_right,$$(call $.get,$$2,use),$$(call $.lambda,$$$$(call $$$$1,$$$$2,$$2)),$$1))
+		$(call $.lambda,$$(if $$(call $.has,$$2,autostrip),$$(strip $$1),$$1))
+		$(call $.lambda,$$(if $$(call $.has,$$2,noline),$$1,$$1$$($.format.\n)))
+		$(call $.lambda,$$(if $$(call $.has,$$2,if),$$(if $$(call $$(call $.get,$$2,if),$$1,$$2),$$1),$$1))
 	endef
 endif
 
 # Applies all the modifiers from $.macro.modifiers to macro source.
 # (source, macro, context) -> (source)
-$.macro.modify_source = $(call $.fp.fold_right,$($.macro.modifiers),$(call $.fp.lambda,$$(call $.call,$$1,$3,$$2,$2)),$1)
+$.macro.modify_source = $(call $.fold_right,$($.macro.modifiers),$(call $.lambda,$$(call $.call,$$1,$3,$$2,$2)),$1)
 
 # Gets a macro by name.
 # (name) -> (macro_handle)
