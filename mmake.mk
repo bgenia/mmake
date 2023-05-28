@@ -66,6 +66,9 @@ $.semver.assert_compatible = $(if $(filter-out = ~,$(call $.semver.compare,$1,$2
 # (semver_expected, semver_actual, error_message) -> ()
 $.semver.assert_minimum = $(if $(filter-out = ~ >,$(call $.semver.compare,$1,$2)),$(error $3))
 
+
+# Make compatibility checks
+
 # Make version checker, can be opted out by the no_make_version_check/no_make_checks pragmas.
 # Turning this off is not recommended, expect unstable behavior.
 # (semver_expected) -> ()
@@ -198,13 +201,18 @@ $.pipe = $(call $.reduce,$1,$(call $.lambda,$$(call $.lambda,$$$$(call $$2,$$$$(
 # (function_list) -> (arg) -> (value)
 $.compose = $(call $.reduce_right,$1,$(call $.lambda,$$(call $.lambda,$$$$(call $$2,$$$$(call $$1,$$$$1)))))
 
-# Generates a list of available function argument variables, works for up to 100 arguments
-# Should be used as a varialbe rather than a function (e.g. $($.argv)) to work
-$.argv = $(strip $(foreach e,$(call $.range,1,100),$(if $(findstring $(origin $e),undefined),,$e)))
+# Generates a list of available function argument variables.
+# () -> (argument_list)
+$.argv = $(strip $(let $.argv/i,$(or $($.argv/i),x),$(if $(findstring $(origin $(words $($.argv/i))),undefined),,$(words $($.argv/i)) $(let $.argv/i,$($.argv/i) x,$(call $.argv)))))
 
-# Computes the number of arguments passed to a function, works for up to 100 arguments
-# Should be used as a varialbe rather than a function (e.g. $($.argc)) to work
+# Computes the number of arguments passed to a function, works for up to 100 arguments.
+# () -> (uint)
 $.argc = $(words $($.argv))
+
+# Creates a string of all available function arguments separated by commas.
+# Must be used as a variable $($.args) to work properly.
+# () -> (arguments)
+$.args = $(subst $.args.separator__,,$(subst $() $.args.separator__,$($.format.,),$(foreach a,$($.argv),$.args.separator__$($a))))
 
 # Creates an argument forwarding list for use in forwarding lambdas.
 # (first_index, count) -> (argument_list)
