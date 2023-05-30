@@ -128,14 +128,15 @@ $.equals = $(and $(findstring $1,$2),$(findstring $2,$1),1)
 # Functional programming
 # These utilities are used to facilitate functional programming in makefiles.
 
-# Identity function
+# Identity function.
+# (arg) -> (arg)
 $.identity = $1
 
-# Creates an anonymous $(call)able function
+# Creates an anonymous $(call)able function.
 # (body) -> (handle)
 $.lambda = $(let e,$(call $.entity.create,$.lambda),$(eval $e = $()$1$())$e)
 
-# Creates a named function using $(eval), can be used with meta constructs such as $.forward_argv
+# Creates a named function using $(eval), can be used with meta constructs such as $.forward_argv.
 # (name, body) -> ()
 $.function = $(eval $1 = $()$2$())
 
@@ -143,9 +144,13 @@ $.function = $(eval $1 = $()$2$())
 # (length, current_) -> (list)
 $.list = $(if $(and $(findstring $1,$(words $2)),$(findstring $(words $2),$1),1),$2,$(call $.list,$1,$2 x))
 
-# Creates a list of numbers from $(start) of length $(length)
+# Creates a list of numbers from $(start) of length $(length)/
 # (start, length) -> (list)
-$.range = $(strip $(let s,$(call $.list,$1),$(call $.fold,$(call $.list,$2),$(call $.lambda,$$2 $$(words $s $$2)),)))
+$.slice = $(call $.range,$1,$(words $(call $.list,$1) $(call $.list,$2)))
+
+# Creates a list of numbers for range [start; end).
+# (start, end, current_) -> (list)
+$.range = $(let v,$(or $3,$(call $.list,$1)),$(if $(call $.equals,$(words $v),$2),,$(strip $(words $v) $(call $.range,$1,$2,$v x))))
 
 # Returns the first element of a list.
 # (list) -> (value)
@@ -201,6 +206,9 @@ $.pipe = $(call $.reduce,$1,$(call $.lambda,$$(call $.lambda,$$$$(call $$2,$$$$(
 # (function_list) -> (arg) -> (value)
 $.compose = $(call $.reduce_right,$1,$(call $.lambda,$$(call $.lambda,$$$$(call $$2,$$$$(call $$1,$$$$1)))))
 
+
+# Function arguments
+
 # Generates a list of available function argument variables.
 # () -> (argument_list)
 $.argv = $(strip $(let $.argv/i,$(or $($.argv/i),x),$(if $(findstring $(origin $(words $($.argv/i))),undefined),,$(words $($.argv/i)) $(let $.argv/i,$($.argv/i) x,$(call $.argv)))))
@@ -216,6 +224,8 @@ $.args = $(subst $.args.separator__,,$(subst $() $.args.separator__,$($.format.,
 
 # Creates an argument forwarding list for use in forwarding lambdas.
 # (first_index, count) -> (argument_list)
+$.forward_argvn = $(call $.join,$(call $.map,$(call $.range,$1,$2),$(call $.lambda,$$$$($$1))),$($.format.,))
+# (first_index, last_index)
 $.forward_argv = $(call $.join,$(call $.map,$(call $.range,$1,$2),$(call $.lambda,$$$$($$1))),$($.format.,))
 
 
