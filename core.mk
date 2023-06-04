@@ -15,7 +15,7 @@ __mmake := 1
 . := __mmake.
 
 # Version
-$.version := 0.2.0
+$.version := 0.2.1
 
 # Make feature checker
 # (feature_list) -> ()
