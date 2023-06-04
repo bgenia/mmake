@@ -22,7 +22,7 @@ endif
 
 # Make configuration
 .RECIPEPREFIX := >
-.NOTPARALLEL:
+#.NOTPARALLEL:
 
 # Include guard
 ifndef __mmake
@@ -32,14 +32,14 @@ __mmake := 1
 . = __mmake.
 
 # mmake version
-$.version := 0.3.0 @proptotype
+$.version := 0.3.0 @prototype
 
 $(info Using $$.mmake v$($.version))
 
 
 # Semver utility functions
 
-# Get version number by index from a semver string
+## Get version number by index from a semver string
 # (semver, index) -> (version_number)
 $.semver.get = $(or $(word $2,$(subst ., ,$1)),0)
 
@@ -119,7 +119,7 @@ $.entity.create = $.entity/$1/$(words $($.entity/$1.index))$(eval $.entity/$1.li
 $.entity.get = $(foreach i,$($.entity/$1.list),$($.entity/$1/$i))
 
 
-# String comaprator
+# String comparator
 # Returns 1 if str1 and str2 are the same, otherwise returns nothing
 # (str1, str2) -> (bool)
 $.equals = $(and $(findstring $1,$2),$(findstring $2,$1),1)
@@ -242,7 +242,7 @@ $.config.template.scopes.default := project
 
 
 # Format markers are used to mark text for formatting.
-# Right/left whitespace removal markers (remove excactly one whitespace character):
+# Right/left whitespace removal markers (removes excactly one whitespace character):
 $.format.rtrim := $.format.rtrim_marker__
 $.format.ltrim := $.format.ltrim_marker__
 
@@ -262,7 +262,7 @@ define $.format.\n :=
 
 endef
 
-# Colon character:
+# Comma character:
 $.format., := ,
 
 # Format marker handlers
@@ -343,7 +343,7 @@ $.has = $(call $.object.has,$1,$2)
 
 # Object/property stringification
 
-# Recursively stringifies objects and properties in in a value.
+# Recursively stringifies objects and properties in a value.
 # As make stuggles with deep recursion, the recursion depth is limited by the depth argument as a number (Default is 2).
 # The current_depth_ argument is used internally and should not be passed explicitly.
 # (value, depth?, current_depth_) -> (string)
@@ -428,7 +428,7 @@ $.macro = $(call $.macro.create,$1,$2)
 
 
 # Configuration
-# MMake provides 2 conviguration primitives in a form of $.project and targets, which are stored as objects.
+# MMake provides 2 configuration primitives in a form of $.project and targets, which are stored as objects.
 # The $.project object (notice that you don't need another $() to access it) represents the project-level configuration.
 # There is only one such object.
 # Target objects allow for target-specific configurations, they are created by the end user and automatically registered on the $.project.
@@ -444,9 +444,19 @@ $.project := $()
 $.project.targets = $(call $.get,$.project,targets)
 $.project.subprojects = $(call $.get,$.project,subprojects)
 
-# Shorthand for adding subprojects
-# (paths) -> (properties)
-$.add_subprojects = $(call $.set,subprojects,$1)
+# Adding subprojects
+# (paths)
+# In future (paths) -> (properties) ?
+define $.add_subprojects =
+$(eval $.mmake.make_all: $1)
+$(eval .PHONY: $1)
+$(call $.set,subprojects,$1)
+$(foreach p, $1,
+$(eval $p:
+>	$$(info Making subproject: $p)
+>	@$(MAKE) -C $(dir $p) -f $(notdir $p)
+))
+endef
 
 # Creates a new target and registers it on the project.
 # Intended for use in a wrapper, therefore doesn't have a shorthand.
@@ -495,7 +505,7 @@ $.template.compile = $(call $.format,$(foreach s,$($.template.steps),$(call $.te
 # Hooks / Defer
 
 # $.defer macros are used to defer the execution of make code until the compilation phase.
-# For example, you can use this to register different templtates depending on the configuration.
+# For example, you can use this to register different templates depending on the configuration.
 # $.defer is noexpand by default when used as a variable `$($.defer)`, but not when used as a function `$(call $.defer,...)`.
 # (properties?) -> (source_handle)
 $.defer = $(call $.macro,$.hook/compile,$(if $(and $(call $.equals,$.defer,$0),$(findstring automatic,$(origin 0))),$1,noexpand))
@@ -518,15 +528,17 @@ $.mmake.make_project = $(call $.defer.eval)$(call $.mmake.write_template)
 # Main entrypoint
 
 # TODO: Build subprojects in parallel
+MAKEFLAGS += -j
+.PHONY: $.mmake.make_all
+$.mmake.make_all: $.mmake.make_project
+
 .PHONY: $.mmake.make_project
 $.mmake.make_project:
 >	$(info Making project$(let n,$(call $.get,$.project,name),$(if $n, [$n])))
 >	$(info Configuration: {{ $(call $.stringify,$($.project),100) }})
 >	$(_ $(call $.mmake.make_project))
 >	$(info Generated makefile: $($.config.makefile))
->	$(if $($.project.subprojects),$(info Making subprojects: $($.project.subprojects)))
->	$(foreach p,$($.project.subprojects),$(MAKE) -C $(dir $p) -f $(notdir $P);)
-
+>	@:
 
 # Plugin loader
 # $.using is a wrapper on top of `include` with support for mmake plugin structure / naming convention.
