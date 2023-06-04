@@ -23,6 +23,7 @@ endif
 # Make configuration
 .RECIPEPREFIX := >
 #.NOTPARALLEL:
+MAKEFLAGS += -j
 
 # Include guard
 ifndef __mmake
@@ -445,17 +446,18 @@ $.project.targets = $(call $.get,$.project,targets)
 $.project.subprojects = $(call $.get,$.project,subprojects)
 
 # Adding subprojects
-# (paths)
-# In future (paths) -> (properties) ?
+# (paths) -> (properties)
+
 define $.add_subprojects =
-$(eval $.mmake.make_all: $1)
-$(eval .PHONY: $1)
-$(call $.set,subprojects,$1)
+$(strip $(eval $.mmake.make_all: $(addprefix __mmake/makefile/,$1))
+$(eval .PHONY: $(addprefix __mmake/makefile/,$1))
 $(foreach p, $1,
-$(eval $p:
->	$$(info Making subproject: $p)
->	@$(MAKE) -C $(dir $p) -f $(notdir $p)
-))
+	$(eval __mmake/makefile/$p:
+>		$$(info Making subproject: $p)
+>		@$(MAKE) -C $(dir $p) -f $(notdir $p)
+	)
+)
+$(call $.set,subprojects,$(addprefix __mmake/makefile/,$1)))
 endef
 
 # Creates a new target and registers it on the project.
@@ -527,8 +529,6 @@ $.mmake.make_project = $(call $.defer.eval)$(call $.mmake.write_template)
 
 # Main entrypoint
 
-# TODO: Build subprojects in parallel
-MAKEFLAGS += -j
 .PHONY: $.mmake.make_all
 $.mmake.make_all: $.mmake.make_project
 
