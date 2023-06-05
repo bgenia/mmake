@@ -449,15 +449,18 @@ $.project.subprojects = $(call $.get,$.project,subprojects)
 # (paths) -> (properties)
 
 define $.add_subprojects =
-$(strip $(eval $.mmake.make_all: $(addprefix __mmake/makefile/,$1))
-$(eval .PHONY: $(addprefix __mmake/makefile/,$1))
-$(foreach p, $1,
-	$(eval __mmake/makefile/$p:
->		$$(info Making subproject: $p)
->		@$(MAKE) -C $(dir $p) -f $(notdir $p)
-	)
+$(strip
+$(foreach p,$1,$(eval
+$.mmake.make_all: $.subproject/$p
+
+.PHONY: $.subproject/$p
+
+$.subproject/$p:
+>	$$(info Making subproject: $p)
+>	$$(MAKE) -C $(dir $p) -f $(notdir $p)
+))
+$(call $.set,subprojects,$(addprefix __mmake/makefile/,$1))
 )
-$(call $.set,subprojects,$(addprefix __mmake/makefile/,$1)))
 endef
 
 # Creates a new target and registers it on the project.
