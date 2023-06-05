@@ -459,7 +459,7 @@ $.subproject/$p:
 >	$$(info Making subproject: $p)
 >	$$(MAKE) -C $(dir $p) -f $(notdir $p)
 ))
-$(call $.set,subprojects,$(addprefix __mmake/makefile/,$1))
+$(call $.set,subprojects,$1)
 )
 endef
 
