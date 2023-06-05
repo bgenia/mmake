@@ -310,10 +310,10 @@ $.property.expand_simple = $(foreach s,$1,$(if $(findstring :,$s),$(let l,$(subs
 
 # Shorthand for $.property.create
 # (key, value, flavor?) -> (handle)
-$.set = $(call $.property.create,$1,$2,$3)
+$.set = $($.property.create)
 
 # Shorthand for $.property.expand_simple
-$.props = $(call $.property.expand_simple,$1)
+$.props = $($.property.expand_simple)
 
 # Objects
 # Objects are lists of properties stored as entities.
@@ -335,11 +335,11 @@ $.object.has = $(firstword $(foreach p,$($1),$(if $(call $.equals,$2,$(call $.pr
 
 # Shorthands for $.object methods
 # (props?) -> (handle)
-$.new = $(call $.object.create,$1)
+$.new = $($.object.create)
 # (object_handle, key, ...args) -> (value)
-$.get = $(call $.object.get,$1,$2,$3,$4,$5,$6,$7)
+$.get = $($.object.get)
 # (object_handle, key) -> (bool)
-$.has = $(call $.object.has,$1,$2)
+$.has = $($.object.has)
 
 
 # Object/property stringification
@@ -422,10 +422,10 @@ $.macro.eval = $(eval $(call $.macro.get_text,$1,$2,$3,$4,$5,$6,$7))
 $.macro.create = $(let s,$(call $.set,source,$(call $.entity.create,$.macro_source)),$(let m,$(call $.new,$(call $.set,name,$1) $s $2),$(call $.macro.register,$m)$($s)))
 
 # Shorthand for $.macro.eval
-$.eval = $(call $.macro.eval,$1,$2,$3,$4,$5,$6,$7)
+$.eval = $($.macro.eval)
 
 # Shorthand for $.macro.create
-$.macro = $(call $.macro.create,$1,$2)
+$.macro = $($.macro.create)
 
 
 # Configuration
@@ -485,7 +485,7 @@ $.template.scopes = project target $($.config.template.scopes)
 
 # Shorthand for $.template.create
 # (properties) -> (source_handle)
-$.template = $(call $.template.create,$1)
+$.template = $($.template.create)
 
 # Template resolvers for different compilation scopes.
 # Resolvers for custom scopes can be defined in a similar manner.
@@ -575,6 +575,6 @@ $.using.apply = $(foreach p,$1,$(call $.using.apply_one,$p))
 
 # Shorthand for $.using.apply
 # (qualified_names) -> ()
-$.using = $(call $.using.apply,$1)
+$.using = $($.using.apply)
 
 endif
