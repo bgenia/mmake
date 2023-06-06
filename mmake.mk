@@ -119,6 +119,9 @@ $.entity.create = $.entity/$1/$(words $($.entity/$1.index))$(eval $.entity/$1.li
 # (type) -> (handle_list)
 $.entity.get = $(foreach i,$($.entity/$1.list),$($.entity/$1/$i))
 
+# Returns entity type
+# (handle) -> (type)
+$.entity.get_type = $(if $(filter $.entity/%,$1),$(word 2,$(subst /, ,$1)),$($1/$.type))
 
 # String comparator
 # Returns 1 if str1 and str2 are the same, otherwise returns nothing
