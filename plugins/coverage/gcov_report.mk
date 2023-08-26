@@ -36,16 +36,12 @@ gcov_report_$($.@):
 endef
 
 define $(call $.new_macro,__gcov_report.gcov_final_template) =
-gcov_report: gcov_report_$(call $.get,$(call $.get,$($.@),gcov_target),name)
+gcov_report: gcov_report_$($.@)
 endef
 
 define $(call $.new_macro,__gcov_report.__gcov_template) =
-$(call $.macro.get,__gcov_report._gcov_template,$(call $.get,$(call $.get,$($.@),gcov_target),name))
-endef
-
-define $(call $.new_macro,__gcov_report._gcov_template) =
-$(call $.macro.get,__gcov_report.gcov_template,$($.@))
-$(if $(call $.has,$($.@),gcov_final),$(call $.macro.get,__gcov_report.gcov_final_template,$($.@)))
+$(call $.macro.get,__gcov_report.gcov_template,$(call $.get,$(call $.get,$($.@),gcov_target),name))
+$(if $(call $.has,$($($.@)),gcov_final),$(call $.macro.get,__gcov_report.gcov_final_template,$(call $.get,$(call $.get,$($($.@)),gcov_target),name)),)
 endef
 
 define $(call $.new_template,util,target) =
