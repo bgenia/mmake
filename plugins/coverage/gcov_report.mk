@@ -29,19 +29,27 @@ TARGETS.CLEAN+=*.gcno *.gcda *.info *.gcov -r report
 endef
 
 define $(call $.new_macro,__gcov_report.gcov_template) =
-gcov_report_$(call $.get,$(call $.get,$($.@),gcov_target),name):
-> ./$(call $.get,$(call $.get,$($.@),gcov_target),name)
-> lcov -o $(call $.get,$(call $.get,$($.@),gcov_target),name).info -c -d .
-> genhtml -o report $(call $.get,$(call $.get,$($.@),gcov_target),name).info
+gcov_report_$($.@):
+> ./$($.@)
+> lcov -o $($.@).info -c -d .
+> genhtml -o report $($.@).info
 endef
 
 define $(call $.new_macro,__gcov_report.gcov_final_template) =
 gcov_report: gcov_report_$(call $.get,$(call $.get,$($.@),gcov_target),name)
 endef
 
-define $(call $.new_template,util,target) =
-$(if $(call $.has,$($.@),gcov_target),$(call $.macro.get,__gcov_report.gcov_template,$($.@)),)
+define $(call $.new_macro,__gcov_report.__gcov_template) =
+$(call $.macro.get,__gcov_report._gcov_template,$(call $.get,$(call $.get,$($.@),gcov_target),name))
+endef
+
+define $(call $.new_macro,__gcov_report._gcov_template) =
+$(call $.macro.get,__gcov_report.gcov_template,$($.@))
 $(if $(call $.has,$($.@),gcov_final),$(call $.macro.get,__gcov_report.gcov_final_template,$($.@)))
+endef
+
+define $(call $.new_template,util,target) =
+$(if $(call $.has,$($.@),gcov_target),$(call $.macro.get,__gcov_report.__gcov_template,$($.@)),)
 endef
 
 endif
