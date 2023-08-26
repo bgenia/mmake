@@ -35,4 +35,28 @@ re: fclean .WAIT all
 
 endef
 
+
+define $(call $.new_template,configure)
+CLANG_FORMAT_ARGS:=-Werror ../**/*.h ../**/*.c
+CLANG_FORMAT_EXEC:=clang-format
+endef
+
+define $(call $.new_template,util)
+verter:
+> cd ../materials/build && sh run.sh
+
+.PHONY: $$(CLANG_FORMAT_EXEC)
+$$(CLANG_FORMAT_EXEC):
+> cp ../materials/linters/.clang-format .
+> $$(CLANG_FORMAT_EXEC) $$(CLANG_FORMAT_ARGS)
+> rm .clang-format
+
+lint: CLANG_FORMAT_ARGS+=--dry-run
+lint: $$(CLANG_FORMAT_EXEC)
+
+lint-fix: CLANG_FORMAT_ARGS+=-i
+lint-fix: $$(CLANG_FORMAT_EXEC)
+
+endef
+
 endif
