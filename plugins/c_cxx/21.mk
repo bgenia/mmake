@@ -29,12 +29,6 @@ define $(call $.autostrip,$.use_21) =
 	$(call $.set,CXXFLAGS,-Wall -Wextra -Werror -std=c++17)
 endef
 
-# Norm-compliant re target
-define $(call $.new_template,util)
-re: fclean .WAIT all
-
-endef
-
 
 define $(call $.new_template,configure)
 CLANG_FORMAT_ARGS:=-Werror ../**/*.h ../**/*.c
