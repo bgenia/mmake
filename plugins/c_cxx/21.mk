@@ -24,9 +24,9 @@ $.config.clean_target := fclean
 # Project/target configuration preset
 define $(call $.autostrip,$.use_21) =
 	$(call $.set,CC,gcc)
-	$(call $.set,CXX,)
+	$(call $.set,CXX,clang)
 	$(call $.set,CFLAGS,-Wall -Wextra -Werror -std=c11)
-	$(call $.set,CXXFLAGS,)
+	$(call $.set,CXXFLAGS,-Wall -Wextra -Werror -std=c11)
 endef
 
 # Norm-compliant re target
