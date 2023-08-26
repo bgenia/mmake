@@ -26,7 +26,7 @@ define $(call $.autostrip,$.use_21) =
 	$(call $.set,CC,gcc)
 	$(call $.set,CXX,g++)
 	$(call $.set,CFLAGS,-Wall -Wextra -Werror -std=c11)
-	$(call $.set,CXXFLAGS,-Wall -Wextra -Werror -std=c11)
+	$(call $.set,CXXFLAGS,-Wall -Wextra -Werror -std=c++17)
 endef
 
 # Norm-compliant re target
