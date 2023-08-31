@@ -3,6 +3,9 @@
 ## 42.mk
 Configuration preset for ecole 42
 
+### Usage
+- `$(var) += $(call $.use_42)`
+
 ### Default compiler settings
 ```
 CC=cc
@@ -18,6 +21,19 @@ CXXFLAGS=-Wall -Wextra -Werror -std=c++98
 
 ## 21.mk
 Configuration preset for school 21
+
+### Usage
+- `$(var) += $(call $.use_21)`
+
+  Uses s21 compilation preset
+
+- `$(var) += $(call $.use_21_check)`
+
+  Properly link check library for both mac and linux
+
+- `$(var) += $(call $.use_21_tests)`
+
+  Generates `test` and `valgrind` tasks for running tests on their own and under valgrind
 
 ### Default compiler settings
 ```

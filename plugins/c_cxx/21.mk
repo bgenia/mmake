@@ -29,6 +29,31 @@ define $(call $.autostrip,$.use_21) =
 	$(call $.set,CXXFLAGS,-Wall -Wextra -Werror -std=c++17)
 endef
 
+define $(call $.autostrip,$.use_21_check) =
+	$(call $.set,LDLIBS,$$(if $$(findstring Linux,$$(shell uname)),-lcheck -pthread -lrt -lm -lsubunit,-lcheck))
+endef
+
+
+define $(call $.autostrip,$.use_21_tests) =
+	$(call $.set,testtarget,$1)
+endef
+
+define $(call $.new_macro,__21.test_template) =
+valgrind: $($.@)
+> valgrind ./$($.@)
+
+test: $($.@)
+> chmod +x $($.@)
+> ./$($.@)
+endef
+
+define $(call $.new_macro,__21._test_template) =
+$(call $.macro.get,__21.test_template,$(call $.get,$(call $.get,$($.@),testtarget),name))
+endef
+
+define $(call $.new_template,util,target) =
+$(if $(call $.has,$($.@),testtarget),$(call $.macro.get,__21._test_template,$($.@)),)
+endef
 
 define $(call $.new_template,configure)
 CLANG_FORMAT_ARGS:=-Werror ../**/*.h ../**/*.c
