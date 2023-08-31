@@ -29,7 +29,7 @@ TARGETS.CLEAN+=*.gcno *.gcda *.info *.gcov -r report
 endef
 
 define $(call $.new_macro,__gcov_report.gcov_template) =
-gcov_report_$($.@):
+gcov_report_$($.@): $($.@)
 > ./$($.@)
 > lcov -o $($.@).info -c -d .
 > genhtml -o report $($.@).info
