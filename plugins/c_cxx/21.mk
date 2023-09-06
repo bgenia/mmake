@@ -30,7 +30,7 @@ define $(call $.autostrip,$.use_21) =
 endef
 
 define $(call $.autostrip,$.use_21_check) =
-	$(call $.set,LDLIBS,$$(if $$(findstring Linux,$$(shell uname)),-lcheck -pthread -lrt -lm -lsubunit,-lcheck))
+	$(call $.set,LDLIBS,$$(pkg-config --libs check))
 endef
 
 
